@@ -1,0 +1,24 @@
+services:
+  bbmri-sample-locator:
+    image: samply/bbmri-sample-locator:develop
+    environment:
+      PUBLIC_ENVIRONMENT: test
+  
+  spot:
+    image: samply/rustyspot:develop
+    environment:
+      BEAM_APP_ID: spot.${DEV_PROXY}.broker-test.bbmri-test.samply.de
+      SITES: &sites eric-test,uppsala-test,lodz-test,DNB-Test
+
+  prism:
+    image: samply/prism:develop
+    environment:
+      BEAM_APP_ID_LONG: prism.${DEV_PROXY}.broker-test.bbmri-test.samply.de
+      SITES: *sites
+
+  proxy1:
+    environment:
+      BROKER_URL: https://broker-test.bbmri-test.samply.de
+      PROXY_ID: ${DEV_PROXY}.broker-test.bbmri-test.samply.de
+    volumes:
+      - ${PKI_PATH}/broker-test.bbmri-test.samply.de:/pki:ro

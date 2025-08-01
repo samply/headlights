@@ -1,0 +1,3 @@
+#!/bin/bash
+
+jq -r --arg service "$1" '.services[$service].environment | to_entries | map("\(.key)=\(.value | sub("^http://host\\.docker\\.internal"; "http://localhost") | @sh)") | join(" ")'

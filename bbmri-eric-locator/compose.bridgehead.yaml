@@ -1,0 +1,55 @@
+services:
+  bbmri-sample-locator:
+    image: samply/bbmri-sample-locator:main
+    ports:
+      - 3000:3000
+    environment:
+      PUBLIC_SPOT_URL: http://localhost:8055
+
+  spot:
+    image: samply/rustyspot:main
+    depends_on:
+      - proxy1
+    ports:
+      - 8055:8055
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    environment:
+      BEAM_PROXY_URL: http://host.docker.internal:8081
+      BEAM_APP_ID: spot.${DEV_PROXY}.broker.bbmri.samply.de
+      BEAM_SECRET: pass123
+      CORS_ORIGIN: http://localhost:3000
+      PRISM_URL: http://prism:8056
+      TRANSFORM: LENS
+      SITES: &sites aachen,augsburg,berlin,brno,bonn,brno-recetox,cyprus,dresden,frankfurt,goettingen,hannover,heidelberg,hradec-kralove,luebeck,mannheim,marburg,muenchen-hmgu,naples-pascale,olomouc,pilsen,prague-ffm,prague-ior,prague-uhkt,regensburg,rome,rome-opbg,uppsala,wuerzburg
+
+  prism:
+    image: samply/prism:main
+    depends_on:
+      - proxy1
+    ports:
+      - 8056:8056
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    environment:
+      BIND_ADDR: 0.0.0.0:8056
+      BEAM_PROXY_URL: http://host.docker.internal:8081
+      BEAM_APP_ID_LONG: prism.${DEV_PROXY}.broker.bbmri.samply.de
+      API_KEY: pass123
+      CORS_ORIGIN: any
+      PROJECT: bbmri
+      SITES: *sites
+
+  proxy1:
+    image: samply/beam-proxy:main
+    ports:
+      - 8081:8081
+    environment:
+      BROKER_URL: https://broker.bbmri.samply.de
+      PROXY_ID: ${DEV_PROXY}.broker.bbmri.samply.de
+      PRIVKEY_FILE: /pki/${DEV_PROXY}.priv.pem
+      ROOTCERT_FILE: /pki/root.crt.pem
+      APP_spot_KEY: pass123
+      APP_prism_KEY: pass123
+    volumes:
+      - ${PKI_PATH}/broker.bbmri.samply.de:/pki:ro
