@@ -26,7 +26,7 @@ The `compose.localbeam.yaml` file brings up a local Beam network consisting of a
 | `proxy3` | `proxy3.broker` | Connect database via Focus (optional) | `8083` | `focus` |
 | `proxy4` | `proxy4.broker` | Connect database via Focus (optional) | `8084` | `focus` |
 
-All apps use the key `pass123` to connect to a proxy.
+All apps use the key `pass123` to connect to a local proxy.
 
 ## Bridgehead mode
 
@@ -137,11 +137,7 @@ This requires that the `compose.local.yaml` file supports running the Focus comp
       OBFUSCATE: no
 ```
 
-The `getenv` script replaces `http://docker.host.internal` with `http://localhost` yielding a list of environment variables that can be used to run Focus on the host:
-
-```
-API_KEY='pass123' BEAM_APP_ID_LONG='focus.proxy2.broker' BEAM_PROXY_URL='http://localhost:8082' BLAZE_URL='http://localhost:8080/fhir/' ENDPOINT_TYPE='blaze' OBFUSCATE='no'
-```
+The `getenv` script replaces `http://docker.host.internal` with `http://localhost` yielding a list of environment variables that can be used to run Focus on the host.
 
 The second step is to run the Compose file excluding the `focus` service:
 
