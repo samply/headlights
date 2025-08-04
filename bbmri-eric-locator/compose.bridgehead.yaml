@@ -19,7 +19,7 @@ services:
       BEAM_APP_ID: spot.${DEV_PROXY}.broker.bbmri.samply.de
       BEAM_SECRET: pass123
       CORS_ORIGIN: http://localhost:3000
-      PRISM_URL: http://prism:8056
+      PRISM_URL: http://host.docker.internal:8056
       TRANSFORM: LENS
       SITES: &sites aachen,augsburg,berlin,brno,bonn,brno-recetox,cyprus,dresden,frankfurt,goettingen,hannover,heidelberg,hradec-kralove,luebeck,mannheim,marburg,muenchen-hmgu,naples-pascale,olomouc,pilsen,prague-ffm,prague-ior,prague-uhkt,regensburg,rome,rome-opbg,uppsala,wuerzburg
 

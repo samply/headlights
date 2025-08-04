@@ -38,8 +38,8 @@ services:
       BEAM_APP_ID_LONG: prism.proxy1.broker
       API_KEY: pass123
       CORS_ORIGIN: any
-      SITES: *sites
       PROJECT: bbmri
+      SITES: *sites
 
   focus:
     image: samply/focus:main-bbmri
