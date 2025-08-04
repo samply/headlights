@@ -1,0 +1,8 @@
+services:
+  ccp-explorer:
+    image: samply/ccp-explorer:develop
+    environment:
+      PUBLIC_ENVIRONMENT: test
+  
+  spot:
+    image: samply/rustyspot:develop

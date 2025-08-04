@@ -1,0 +1,57 @@
+services:
+  ccp-explorer:
+    image: samply/ccp-explorer:main
+    ports:
+      - 3000:3000
+    environment:
+      PUBLIC_SPOT_URL: http://localhost:8055
+
+  spot:
+    image: samply/rustyspot:main
+    depends_on:
+      - proxy1
+    ports:
+      - 8055:8055
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    environment:
+      BEAM_PROXY_URL: http://host.docker.internal:8081
+      BEAM_APP_ID: spot.proxy1.broker
+      BEAM_SECRET: pass123
+      CORS_ORIGIN: http://localhost:3000
+      TRANSFORM: LENS
+      SITES: proxy2
+
+  focus:
+    image: samply/focus:main-dktk
+    depends_on:
+      - proxy2
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    environment:
+      BEAM_PROXY_URL: http://host.docker.internal:8082
+      BEAM_APP_ID_LONG: focus.proxy2.broker
+      API_KEY: pass123
+      ENDPOINT_TYPE: blaze
+      BLAZE_URL: http://host.docker.internal:8080/fhir/
+      OBFUSCATE: no
+
+  blaze:
+    image: samply/blaze:latest
+    ports:
+      - 8080:8080
+    healthcheck:
+      test: curl -f http://localhost:8080/fhir/metadata
+      start_period: 1m
+
+  test-data-loader:
+    image: alpine:latest
+    depends_on:
+      blaze:
+        condition: service_healthy
+    volumes:
+      - ./fhir-test-data:/fhir-test-data:ro
+    command: ["sh", "-c", "wget -qO - https://github.com/samply/blazectl/releases/download/v1.0.0/blazectl-1.0.0-linux-amd64.tar.gz | tar -xzf - blazectl && ./blazectl --server http://blaze:8080/fhir upload /fhir-test-data"]
+
+include:
+  - ../compose.localbeam.yaml

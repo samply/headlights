@@ -3,9 +3,15 @@ services:
     image: hashicorp/vault:latest
     environment:
       VAULT_DEV_ROOT_TOKEN_ID: token123
+    healthcheck:
+      test: VAULT_ADDR=http://localhost:8200 vault status
+      start_period: 1m
 
   pki-setup:
     image: hashicorp/vault:latest
+    depends_on:
+      vault:
+        condition: service_healthy
     environment:
       VAULT_ADDR: http://vault:8200
       VAULT_TOKEN: token123

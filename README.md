@@ -77,7 +77,7 @@ docker compose up -f [PROJECT DIRECTORY]/compose.bridgehead.yaml --env-file .env
 
 ## Override files
 
-Projects can have more than one environment. The `compose.local.yaml` and `compose.bridgehead.yaml` files should emulate the production environment. Override files are used to emulate other environments. For example projects with a test environment have a `compose.local.test.yaml` or `compose.bridgehead.test.yaml` file in their project directory. Run these as follows:
+Many projects have more than one environment. The `compose.local.yaml` and `compose.bridgehead.yaml` files should emulate the production environment. Override files are used to emulate other environments. For example projects with a test environment have a `compose.local.test.yaml` or `compose.bridgehead.test.yaml` override file in their project directory. Use these as follows:
 
 ```bash
 # Local, test
@@ -86,27 +86,17 @@ docker compose -f [PROJECT DIRECTORY]/compose.local.yaml -f [PROJECT DIRECTORY]/
 docker compose -f [PROJECT DIRECTORY]/compose.bridgehead.yaml -f [PROJECT DIRECTORY]/compose.bridgehead.test.yaml --env-file .env.beam up --pull always
 ```
 
-Override files commonly override image tags, the Beam broker, and the sites to query. For example:
+Override files commonly override image tags and environment variables. For example:
 
 ```yaml
 services:
-  bbmri-sample-locator:
-    image: samply/bbmri-sample-locator:develop
+  ccp-explorer:
+    image: samply/ccp-explorer:develop
     environment:
       PUBLIC_ENVIRONMENT: test
   
   spot:
     image: samply/rustyspot:develop
-    environment:
-      BEAM_APP_ID: spot.${DEV_PROXY}.broker-test.bbmri-test.samply.de
-      SITES: eric-test,uppsala-test,lodz-test,DNB-Test
-
-  proxy1:
-    environment:
-      BROKER_URL: https://broker-test.bbmri-test.samply.de
-      PROXY_ID: ${DEV_PROXY}.broker-test.bbmri-test.samply.de
-    volumes:
-      - ${PKI_PATH}/broker-test.bbmri-test.samply.de:/pki:ro
 ```
 
 ## Running individual components from source
@@ -148,7 +138,7 @@ docker compose -f [PROJECT DIRECTORY]/compose.local.yaml up --pull always --scal
 As a last step we can run Focus from source with the environment variables we obtained in the first step:
 
 ```
-API_KEY='pass123' BEAM_APP_ID_LONG='focus.proxy2.broker' BEAM_PROXY_URL='http://localhost:8082' BLAZE_URL='http://localhost:8080/fhir/' ENDPOINT_TYPE='blaze' OBFUSCATE='no' cargo run
+API_KEY='pass123' BEAM_APP_ID_LONG='focus.proxy2.broker' BEAM_PROXY_URL='http://localhost:8082' BLAZE_URL='http://localhost:8080/fhir/' ENDPOINT_TYPE='blaze' OBFUSCATE='no' cargo run --features bbmri
 ```
 
 ## Adding a project to Headlights
