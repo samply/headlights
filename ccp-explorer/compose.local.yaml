@@ -15,7 +15,7 @@ services:
     extra_hosts:
       - host.docker.internal:host-gateway
     environment:
-      BEAM_PROXY_URL: http://host.docker.internal:8081
+      BEAM_PROXY_URL: http://proxy1:8081
       BEAM_APP_ID: spot.proxy1.broker
       BEAM_SECRET: pass123
       CORS_ORIGIN: http://localhost:3000
@@ -29,11 +29,11 @@ services:
     extra_hosts:
       - host.docker.internal:host-gateway
     environment:
-      BEAM_PROXY_URL: http://host.docker.internal:8082
+      BEAM_PROXY_URL: http://proxy2:8082
       BEAM_APP_ID_LONG: focus.proxy2.broker
       API_KEY: pass123
       ENDPOINT_TYPE: blaze
-      BLAZE_URL: http://host.docker.internal:8080/fhir/
+      BLAZE_URL: http://blaze:8080/fhir/
       OBFUSCATE: no
 
   blaze:
