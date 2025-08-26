@@ -7,7 +7,7 @@ Headlights allows manual end-to-end testing of the federated search tools in the
 In local mode all components are running locally. This includes a local [Beam](https://github.com/samply/beam) network and a local database (typically [Blaze](https://github.com/samply/blaze)) that is filled with synthetic data. Projects supporting local mode have a `compose.local.yaml` file in their project directory. Run a project in local mode as follows:
 
 ```bash
-docker compose up -f [PROJECT DIRECTORY]/compose.local.yaml up --pull always
+docker compose -f [PROJECT DIRECTORY]/compose.local.yaml up --pull always
 ```
 
 `compose.local.yaml` files use the `compose.localbeam.yaml` file in the root of the repository by including it:
@@ -54,7 +54,7 @@ PKI_PATH=/home/john/pki
 Now you are ready to use bridgehead mode. Projects supporting bridgehead mode have a `compose.bridgehead.yaml` file in their project directory. Run a project in bridgehead mode as follows:
 
 ```bash
-docker compose up -f [PROJECT DIRECTORY]/compose.bridgehead.yaml --env-file .env.beam up --pull always
+docker compose -f [PROJECT DIRECTORY]/compose.bridgehead.yaml --env-file .env.beam up --pull always
 ```
 
 `compose.bridgehead.yaml` files define the `proxy1` service that uses the private key from the PKI directory to connect to the Beam network. For example:
