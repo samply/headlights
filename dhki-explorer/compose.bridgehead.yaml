@@ -1,0 +1,36 @@
+services:
+  # ccp-explorer:
+  #   image: samply/ccp-explorer:main
+  #   ports:
+  #     - 3000:3000
+  #   environment:
+  #     PUBLIC_SPOT_URL: http://localhost:8055
+
+  spot:
+    image: samply/rustyspot:main
+    depends_on:
+      - proxy1
+    ports:
+      - 8055:8055
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    environment:
+      BEAM_PROXY_URL: http://host.docker.internal:8081
+      BEAM_APP_ID: spot.${DEV_PROXY}.broker.hector.dkfz.de
+      BEAM_SECRET: pass123
+      CORS_ORIGIN: http://localhost:3000
+      TRANSFORM: LENS
+
+  proxy1:
+    image: samply/beam-proxy:main
+    ports:
+      - 8081:8081
+    environment:
+      BROKER_URL: https://broker.hector.dkfz.de
+      PROXY_ID: ${DEV_PROXY}.broker.hector.dkfz.de
+      PRIVKEY_FILE: /pki/${DEV_PROXY}.priv.pem
+      ROOTCERT_FILE: /pki/root.crt.pem
+      APP_spot_KEY: pass123
+      APP_prism_KEY: pass123
+    volumes:
+      - ${PKI_PATH}/broker.hector.dkfz.de:/pki:ro
