@@ -15,7 +15,7 @@ services:
     extra_hosts:
       - host.docker.internal:host-gateway
     environment:
-      BEAM_PROXY_URL: http://host.docker.internal:8081
+      BEAM_PROXY_URL: http://host.docker.internal:8077
       BEAM_APP_ID: spot.proxy1.broker
       BEAM_SECRET: pass123
       CORS_ORIGIN: http://localhost:3000

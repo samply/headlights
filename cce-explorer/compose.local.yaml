@@ -1,10 +1,10 @@
 services:
-  ccp-explorer:
-    image: samply/ccp-explorer:latest
-    ports:
-      - 3000:3000
-    environment:
-      PUBLIC_SPOT_URL: http://localhost:8055
+  # cce-explorer:
+  #   image: samply/cce-explorer:latest
+  #   ports:
+  #     - 3000:3000
+  #   environment:
+  #     PUBLIC_SPOT_URL: http://localhost:8055
 
   spot:
     image: samply/rustyspot:main
@@ -13,24 +13,24 @@ services:
     ports:
       - 8055:8055
     environment:
-      BEAM_PROXY_URL: http://proxy1:8081
+      BEAM_PROXY_URL: http://proxy1:8077
       BEAM_APP_ID: spot.proxy1.broker
       BEAM_SECRET: pass123
       CORS_ORIGIN: http://localhost:3000
       TRANSFORM: LENS
       SITES: proxy2
 
-  focus:
-    image: samply/focus:main-dktk
-    depends_on:
-      - proxy2
-    environment:
-      BEAM_PROXY_URL: http://proxy2:8082
-      BEAM_APP_ID_LONG: focus.proxy2.broker
-      API_KEY: pass123
-      ENDPOINT_TYPE: blaze
-      BLAZE_URL: http://blaze:8080/fhir/
-      OBFUSCATE: no
+  # focus:
+  #   image: samply/focus:main-cce
+  #   depends_on:
+  #     - proxy2
+  #   environment:
+  #     BEAM_PROXY_URL: http://proxy2:8082
+  #     BEAM_APP_ID_LONG: focus.proxy2.broker
+  #     API_KEY: pass123
+  #     ENDPOINT_TYPE: blaze
+  #     BLAZE_URL: http://blaze:8080/fhir/
+  #     OBFUSCATE: no
 
   blaze:
     image: samply/blaze:latest
@@ -40,13 +40,13 @@ services:
       test: curl -f http://localhost:8080/fhir/metadata
       start_period: 1m
 
-  test-data-loader:
-    image: samply/test-data-loader:master
-    depends_on:
-      blaze:
-        condition: service_healthy
-    environment:
-      FHIR_STORE_URL: http://blaze:8080/fhir
+  # test-data-loader:
+  #   image: samply/test-data-loader:master
+  #   depends_on:
+  #     blaze:
+  #       condition: service_healthy
+  #   environment:
+  #     FHIR_STORE_URL: http://blaze:8080/fhir
 
 include:
   - ../compose.localbeam.yaml
