@@ -1,6 +1,6 @@
 services:
   ccp-explorer:
-    image: samply/ccp-explorer:develop
+    image: samply/ccp-explorer:main
     environment:
       PUBLIC_ENVIRONMENT: test
   

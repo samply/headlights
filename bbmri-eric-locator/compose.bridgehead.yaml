@@ -1,6 +1,6 @@
 services:
   bbmri-sample-locator:
-    image: samply/bbmri-sample-locator:main
+    image: samply/bbmri-sample-locator:latest
     ports:
       - 3000:3000
     environment:

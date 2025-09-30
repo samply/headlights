@@ -90,7 +90,7 @@ Override files commonly override image tags, the Beam broker, and the sites to q
 ```yaml
 services:
   bbmri-sample-locator:
-    image: samply/bbmri-sample-locator:develop
+    image: samply/bbmri-sample-locator:main
     environment:
       PUBLIC_ENVIRONMENT: test
   
