@@ -1,4 +1,4 @@
-## Run CCP Explorer
+## Run CCE Explorer
 
 ```bash
 # Local, production
@@ -43,6 +43,10 @@ Then open http://localhost:3000/ in your browser.
     ```bash
     [INSERT ENVIRONMENT VARIABLES] npm run dev -- --port 3000
     ```
+
+#### Frontend env vars
+
+Right now, the only env var printed out is the PUBLIC_SPOT_URL, but this is already specified in the `cce-explorer/config/options.json` so we can run the frontend normally (without having to specify the env vars with the `npm run` cmd).
 
 ### Run Spot from source
 
@@ -95,5 +99,11 @@ Then open http://localhost:3000/ in your browser.
 
 3.  Run https://github.com/samply/focus from source
     ```bash
-    [INSERT ENVIRONMENT VARIABLES] cargo run --features dktk
+    [INSERT ENVIRONMENT VARIABLES] cargo run --features cce
     ```
+
+#### Focus env vars
+
+```bash
+API_KEY='pass123' BEAM_APP_ID_LONG='focus.proxy2.broker' BEAM_PROXY_URL='http://localhost:4002' BLAZE_URL='http://localhost:8080/fhir/' ENDPOINT_TYPE='blaze' OBFUSCATE='no'
+```
