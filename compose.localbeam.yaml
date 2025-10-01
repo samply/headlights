@@ -26,7 +26,8 @@ services:
       pki-setup:
         condition: service_completed_successfully
     environment:
-      BROKER_URL: http://broker:8080
+      BIND_ADDR: 0.0.0.0:4000
+      BROKER_URL: http://broker:4000
       PKI_ADDRESS: http://vault:8200
       PKI_APIKEY_FILE: /pki/pki.secret
       ROOTCERT_FILE: /pki/root.crt.pem
@@ -38,10 +39,10 @@ services:
     depends_on:
       - broker
     ports:
-      - 8081:8081
+      - 4001:4001
     environment:
-      BIND_ADDR: 0.0.0.0:8081
-      BROKER_URL: http://broker:8080
+      BIND_ADDR: 0.0.0.0:4001
+      BROKER_URL: http://broker:4000
       PROXY_ID: proxy1.broker
       PRIVKEY_FILE: /pki/proxy1.priv.pem
       ROOTCERT_FILE: /pki/root.crt.pem
@@ -55,10 +56,10 @@ services:
     depends_on:
       - broker
     ports:
-      - 8082:8082
+      - 4002:4002
     environment:
-      BIND_ADDR: 0.0.0.0:8082
-      BROKER_URL: http://broker:8080
+      BIND_ADDR: 0.0.0.0:4002
+      BROKER_URL: http://broker:4000
       PROXY_ID: proxy2.broker
       PRIVKEY_FILE: /pki/proxy2.priv.pem
       ROOTCERT_FILE: /pki/root.crt.pem
@@ -71,10 +72,10 @@ services:
     depends_on:
       - broker
     ports:
-      - 8083:8083
+      - 4003:4003
     environment:
-      BIND_ADDR: 0.0.0.0:8083
-      BROKER_URL: http://broker:8080
+      BIND_ADDR: 0.0.0.0:4003
+      BROKER_URL: http://broker:4000
       PROXY_ID: proxy3.broker
       PRIVKEY_FILE: /pki/proxy3.priv.pem
       ROOTCERT_FILE: /pki/root.crt.pem
@@ -87,10 +88,10 @@ services:
     depends_on:
       - broker
     ports:
-      - 8084:8084
+      - 4004:4004
     environment:
-      BIND_ADDR: 0.0.0.0:8084
-      BROKER_URL: http://broker:8080
+      BIND_ADDR: 0.0.0.0:4004
+      BROKER_URL: http://broker:4000
       PROXY_ID: proxy4.broker
       PRIVKEY_FILE: /pki/proxy4.priv.pem
       ROOTCERT_FILE: /pki/root.crt.pem

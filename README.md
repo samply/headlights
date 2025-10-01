@@ -21,10 +21,10 @@ The `compose.localbeam.yaml` file brings up a local Beam network consisting of a
 
 | Service name | Beam proxy ID | Intended use | Host port | Configured apps |
 | ----- | ----- | --- | --- | --- |
-| `proxy1` | `proxy1.broker` | Connect frontend via Spot | `8081` | `spot`, `prism` |
-| `proxy2` | `proxy2.broker` | Connect database via Focus | `8082` | `focus` |
-| `proxy3` | `proxy3.broker` | Connect database via Focus (optional) | `8083` | `focus` |
-| `proxy4` | `proxy4.broker` | Connect database via Focus (optional) | `8084` | `focus` |
+| `proxy1` | `proxy1.broker` | Connect frontend via Spot | `4001` | `spot`, `prism` |
+| `proxy2` | `proxy2.broker` | Connect database via Focus | `4002` | `focus` |
+| `proxy3` | `proxy3.broker` | Connect database via Focus (optional) | `4003` | `focus` |
+| `proxy4` | `proxy4.broker` | Connect database via Focus (optional) | `4004` | `focus` |
 
 All apps use the key `pass123` to connect to a local proxy.
 
@@ -63,8 +63,9 @@ docker compose -f [PROJECT DIRECTORY]/compose.bridgehead.yaml --env-file .env.be
   proxy1:
     image: samply/beam-proxy:main
     ports:
-      - 8081:8081
+      - 4001:4001
     environment:
+      BIND_ADDR: 0.0.0.0:4001
       BROKER_URL: https://broker.bbmri.samply.de
       PROXY_ID: ${DEV_PROXY}.broker.bbmri.samply.de
       PRIVKEY_FILE: /pki/${DEV_PROXY}.priv.pem
@@ -128,7 +129,7 @@ This requires that the `compose.local.yaml` file supports running the Focus comp
     extra_hosts:
       - host.docker.internal:host-gateway
     environment:
-      BEAM_PROXY_URL: http://host.docker.internal:8082
+      BEAM_PROXY_URL: http://host.docker.internal:4002
       BEAM_APP_ID_LONG: focus.proxy2.broker
       API_KEY: pass123
       ENDPOINT_TYPE: blaze
@@ -147,7 +148,7 @@ docker compose -f [PROJECT DIRECTORY]/compose.local.yaml up --pull always --scal
 As a last step we can run Focus from source with the environment variables we obtained in the first step:
 
 ```
-API_KEY='pass123' BEAM_APP_ID_LONG='focus.proxy2.broker' BEAM_PROXY_URL='http://localhost:8082' BLAZE_URL='http://localhost:8080/fhir/' ENDPOINT_TYPE='blaze' OBFUSCATE='no' cargo run --features bbmri
+API_KEY='pass123' BEAM_APP_ID_LONG='focus.proxy2.broker' BEAM_PROXY_URL='http://localhost:4002' BLAZE_URL='http://localhost:8080/fhir/' ENDPOINT_TYPE='blaze' OBFUSCATE='no' cargo run --features bbmri
 ```
 
 ## Adding a project to Headlights
