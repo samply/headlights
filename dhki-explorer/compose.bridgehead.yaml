@@ -1,10 +1,10 @@
 services:
-  # ccp-explorer:
-  #   image: samply/ccp-explorer:main
-  #   ports:
-  #     - 3000:3000
-  #   environment:
-  #     PUBLIC_SPOT_URL: http://localhost:8055
+  dhki-explorer:
+    image: samply/dhki-explorer:main
+    ports:
+      - 3000:3000
+    environment:
+      PUBLIC_SPOT_URL: http://localhost:8055
 
   spot:
     image: samply/rustyspot:main
