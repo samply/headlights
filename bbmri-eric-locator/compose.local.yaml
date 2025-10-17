@@ -21,6 +21,7 @@ services:
       CORS_ORIGIN: http://localhost:3000
       PRISM_URL: http://host.docker.internal:8056
       TRANSFORM: LENS
+      PROJECT: bbmri
       SITES: &sites proxy2
 
   prism:
@@ -42,7 +43,7 @@ services:
       SITES: *sites
 
   focus:
-    image: samply/focus:main-bbmri
+    image: samply/focus:main
     depends_on:
       - proxy2
     extra_hosts:

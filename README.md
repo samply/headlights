@@ -123,7 +123,7 @@ This requires that the `compose.local.yaml` file supports running the Focus comp
 
 ```yaml
   focus:
-    image: samply/focus:main-bbmri
+    image: samply/focus:main
     depends_on:
       - proxy2
     extra_hosts:
@@ -148,7 +148,7 @@ docker compose -f [PROJECT DIRECTORY]/compose.local.yaml up --pull always --scal
 As a last step we can run Focus from source with the environment variables we obtained in the first step:
 
 ```
-API_KEY='pass123' BEAM_APP_ID_LONG='focus.proxy2.broker' BEAM_PROXY_URL='http://localhost:4002' BLAZE_URL='http://localhost:8080/fhir/' ENDPOINT_TYPE='blaze' OBFUSCATE='no' cargo run --features bbmri
+API_KEY='pass123' BEAM_APP_ID_LONG='focus.proxy2.broker' BEAM_PROXY_URL='http://localhost:4002' BLAZE_URL='http://localhost:8080/fhir/' ENDPOINT_TYPE='blaze' OBFUSCATE='no' cargo run
 ```
 
 ## Adding a project to Headlights

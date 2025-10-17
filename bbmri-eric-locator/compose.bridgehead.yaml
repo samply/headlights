@@ -21,6 +21,7 @@ services:
       CORS_ORIGIN: http://localhost:3000
       PRISM_URL: http://host.docker.internal:8056
       TRANSFORM: LENS
+      PROJECT: bbmri
       SITES: &sites aachen,augsburg,berlin,brno,bonn,brno-recetox,cyprus,dresden,frankfurt,goettingen,hannover,heidelberg,hradec-kralove,luebeck,mannheim,marburg,muenchen-hmgu,naples-pascale,olomouc,pilsen,prague-ffm,prague-ior,prague-uhkt,regensburg,rome,rome-opbg,uppsala,wuerzburg
 
   prism:

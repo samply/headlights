@@ -20,10 +20,11 @@ services:
       BEAM_SECRET: pass123
       CORS_ORIGIN: http://localhost:3000
       TRANSFORM: LENS
+      PROJECT: dktk
       SITES: proxy2
 
   focus:
-    image: samply/focus:main-dktk
+    image: samply/focus:main
     depends_on:
       - proxy2
     extra_hosts:

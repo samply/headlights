@@ -95,5 +95,5 @@ Then open http://localhost:3000/ in your browser.
 
 3.  Run https://github.com/samply/focus from source
     ```bash
-    [INSERT ENVIRONMENT VARIABLES] cargo run --features dktk
+    [INSERT ENVIRONMENT VARIABLES] cargo run
     ```

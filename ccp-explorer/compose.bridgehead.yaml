@@ -20,6 +20,7 @@ services:
       BEAM_SECRET: pass123
       CORS_ORIGIN: http://localhost:3000
       TRANSFORM: LENS
+      PROJECT: dktk
       SITES: berlin-test,dresden,essen,frankfurt,freiburg,hannover,mainz,luebeck,muenchen-lmu,muenchen-tum,ulm,wuerzburg,mannheim,hamburg
 
   proxy1:
