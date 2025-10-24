@@ -5,6 +5,6 @@ services:
       PUBLIC_ENVIRONMENT: test
   
   spot:
-    image: samply/rustyspot:develop
+    image: samply/rustyspot:main
     environment:
       SITES: dktk-test,dktk-datashield-test,berlin,berlin-test,dresden,essen,frankfurt,freiburg,luebeck,marburg,hannover,mainz,muenchen-lmu,muenchen-tum,ulm,wuerzburg,mannheim,hamburg

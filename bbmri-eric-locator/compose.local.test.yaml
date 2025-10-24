@@ -5,7 +5,7 @@ services:
       PUBLIC_ENVIRONMENT: test
   
   spot:
-    image: samply/rustyspot:develop
+    image: samply/rustyspot:main
 
   prism:
     image: samply/prism:develop

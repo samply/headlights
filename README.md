@@ -96,7 +96,7 @@ services:
       PUBLIC_ENVIRONMENT: test
   
   spot:
-    image: samply/rustyspot:develop
+    image: samply/rustyspot:main
     environment:
       BEAM_APP_ID: spot.${DEV_PROXY}.broker-test.bbmri-test.samply.de
       SITES: eric-test,uppsala-test,lodz-test,DNB-Test

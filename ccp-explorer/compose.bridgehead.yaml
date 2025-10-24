@@ -7,7 +7,7 @@ services:
       PUBLIC_SPOT_URL: http://localhost:8055
 
   spot:
-    image: samply/rustyspot:main
+    image: samply/rustyspot:latest
     depends_on:
       - proxy1
     ports:
