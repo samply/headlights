@@ -71,6 +71,15 @@ services:
         condition: service_healthy
     environment:
       FHIR_STORE_URL: http://blaze:8080/fhir
+      PATIENT_COUNT: "256"
+
+  playwright:
+    extends:
+      file: ../compose.playwright.yaml
+      service: playwright
+    depends_on:
+      test-data-loader:
+        condition: service_completed_successfully
 
 include:
   - ../compose.localbeam.yaml

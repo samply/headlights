@@ -1,4 +1,6 @@
-Headlights allows manual end-to-end testing of the federated search tools in the [Samply](https://github.com/samply/) organization. The repository is organized into project directories that contain a project README file, Docker Compose files, and optionally synthetic data. You can get started by copying a command from one of the project README files. Note that running in bridgehead mode requires that you set up of a PKI directory and create a `.env.beam` file as described in the [bridgehead mode](#bridgehead-mode) section.
+[![Playwright Tests](https://github.com/samply/headlights/actions/workflows/playwright.yml/badge.svg)](https://github.com/samply/headlights/actions/workflows/playwright.yml)
+
+Headlights allows end-to-end testing of the federated search tools in the [Samply](https://github.com/samply/) organization. The repository is organized into project directories that contain a project README file, Docker Compose files, and optionally synthetic data. You can get started by copying a command from one of the project README files. Note that running in bridgehead mode requires that you set up of a PKI directory and create a `.env.beam` file as described in the [bridgehead mode](#bridgehead-mode) section.
 
 ## Local mode
 
@@ -150,5 +152,7 @@ As a last step we can run Focus from source with the environment variables we ob
 ```
 API_KEY='pass123' BEAM_APP_ID_LONG='focus.proxy2.broker' BEAM_PROXY_URL='http://localhost:4002' BLAZE_URL='http://localhost:8080/fhir/' ENDPOINT_TYPE='blaze' OBFUSCATE='no' cargo run
 ```
+
+## Automated tests using Playwright
 
 ## Adding a project to Headlights

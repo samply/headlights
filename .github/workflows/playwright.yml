@@ -1,0 +1,55 @@
+name: Playwright Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  schedule:
+    # Run nightly at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # Set CI environment variable for Playwright config
+      CI: true
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: 'bbmri-eric-locator'
+            compose-files: '-f bbmri-eric-locator/compose.local.yaml'
+          - name: 'bbmri-eric-locator-test'
+            compose-files: '-f bbmri-eric-locator/compose.local.yaml -f bbmri-eric-locator/compose.local.test.yaml'
+          - name: 'ccp-explorer'
+            compose-files: '-f ccp-explorer/compose.local.yaml'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Run Playwright tests
+        run: |
+          docker compose ${{ matrix.compose-files }} up -d
+          # This propagates the exit code of the Playwright tests to the GitHub Actions step
+          docker compose ${{ matrix.compose-files }} wait playwright
+
+      - name: Copy Playwright Report
+        if: always()
+        run: |
+          docker compose ${{ matrix.compose-files }} cp playwright:/test/playwright-report ./playwright-report
+
+      - name: Upload Playwright Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.name }}
+          path: playwright-report/
