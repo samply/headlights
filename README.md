@@ -2,7 +2,7 @@
 
 [![Playwright Tests](https://github.com/samply/headlights/actions/workflows/playwright.yml/badge.svg)](https://github.com/samply/headlights/actions/workflows/playwright.yml)
 
-Headlights implements end-to-end testing of the federated search tools in the [Samply](https://github.com/samply/) organization. The repository is organized into project directories that contain a project README file, Docker Compose files, Playwright tests, and optionally synthetic data. You can get started by copying a command from one of the project README files. Note that running in bridgehead mode requires that you set up of a PKI directory and create a `.env.beam` file as described in the [bridgehead mode](#bridgehead-mode) section.
+Headlights implements end-to-end testing of the federated search tools in the [Samply](https://github.com/samply/) organization. The repository is organized into project directories that contain a project README file, Docker Compose files, and optionally Playwright tests. You can get started by copying a command from one of the project README files. Note that running in bridgehead mode requires that you set up of a PKI directory and create a `.env.beam` file as described in the [bridgehead mode](#bridgehead-mode) section.
 
 * [Local mode](#local-mode)
 * [Bridgehead mode](#bridgehead-mode)
@@ -120,9 +120,7 @@ services:
 
 ## Running individual components from source
 
-Headlights allows you to exclude a specific component from the Compose file and run it from source. You can get started quickly by copying the three commands for the component you want to run from source from the project README file.
-
-Let's consider an example and look at the three steps in detail. Say we want to start a project in local mode and run Focus from source. The first step is to extract the environment variables of the `focus` service from the Compose file:
+Headlights allows you to exclude a specific component from the Compose file and run it from source. Let's consider an example and look at the three steps in detail. Say we want to start a project in local mode and run Focus from source. The first step is to extract the environment variables of the `focus` service from the Compose file:
 
 ```bash
 docker compose -f [PROJECT DIRECTORY]/compose.local.yaml config --format json | ./getenv focus
