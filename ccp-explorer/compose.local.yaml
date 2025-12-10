@@ -55,12 +55,18 @@ services:
     command: ["sh", "-c", "apk add --no-cache curl && curl https://raw.githubusercontent.com/samply/obds2fhir/refs/heads/develop/src/test/resources/FHIR_oBDS_Expected-File-4.xml | curl -X POST -H 'Content-Type: application/fhir+xml' -d @- http://blaze:8080/fhir"]
 
   playwright:
-    extends:
-      file: ../compose.playwright.yaml
-      service: playwright
+    image: mcr.microsoft.com/playwright:v1.57.0-noble
+    network_mode: host
     depends_on:
       test-data-loader:
         condition: service_completed_successfully
+    environment:
+      - CI=${CI}
+    volumes:
+      - ../playwright.config.ts:/test/playwright.config.ts:ro
+      - ./playwright.spec.ts:/test/playwright.spec.ts:ro
+    working_dir: /test
+    command: bash -c 'npm i @playwright/test@1.57.0 && npx playwright test'
 
 include:
   - ../compose.localbeam.yaml

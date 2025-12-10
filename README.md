@@ -1,6 +1,12 @@
 [![Playwright Tests](https://github.com/samply/headlights/actions/workflows/playwright.yml/badge.svg)](https://github.com/samply/headlights/actions/workflows/playwright.yml)
 
-Headlights allows end-to-end testing of the federated search tools in the [Samply](https://github.com/samply/) organization. The repository is organized into project directories that contain a project README file, Docker Compose files, and optionally synthetic data. You can get started by copying a command from one of the project README files. Note that running in bridgehead mode requires that you set up of a PKI directory and create a `.env.beam` file as described in the [bridgehead mode](#bridgehead-mode) section.
+Headlights implements end-to-end testing of the federated search tools in the [Samply](https://github.com/samply/) organization. The repository is organized into project directories that contain a project README file, Docker Compose files, Playwright tests, and optionally synthetic data. You can get started by copying a command from one of the project README files. Note that running in bridgehead mode requires that you set up of a PKI directory and create a `.env.beam` file as described in the [bridgehead mode](#bridgehead-mode) section.
+
+* [Local mode](#local-mode)
+* [Bridgehead mode](#bridgehead-mode)
+* [Emulating other environments using override files](#emulating-other-environments-using-override-files)
+* [Running individual components from source](#running-individual-components-from-source)
+* [Automated tests using Playwright](#automated-tests-using-playwright)
 
 ## Local mode
 
@@ -78,13 +84,12 @@ docker compose -f [PROJECT DIRECTORY]/compose.bridgehead.yaml --env-file .env.be
       - ${PKI_PATH}/broker.bbmri.samply.de:/pki:ro
 ```
 
-## Override files
+## Emulating other environments using override files
+
 Projects can have more than one environment. The `compose.local.yaml` and `compose.bridgehead.yaml` files should emulate the production environment. Override files are used to emulate other environments. For example projects with a test environment have a `compose.local.test.yaml` or `compose.bridgehead.test.yaml` override file in their project directory. Use these as follows:
 
 ```bash
-# Local, test
 docker compose -f [PROJECT DIRECTORY]/compose.local.yaml -f [PROJECT DIRECTORY]/compose.local.test.yaml up --pull always
-# Bridgehead, test
 docker compose -f [PROJECT DIRECTORY]/compose.bridgehead.yaml -f [PROJECT DIRECTORY]/compose.bridgehead.test.yaml --env-file .env.beam up --pull always
 ```
 
@@ -155,4 +160,45 @@ API_KEY='pass123' BEAM_APP_ID_LONG='focus.proxy2.broker' BEAM_PROXY_URL='http://
 
 ## Automated tests using Playwright
 
-## Adding a project to Headlights
+Headlights supports automated end-to-end testing using [Playwright](https://playwright.dev/). Playwright tests can run in three scenarios:
+
+* Projects with automated tests include a `playwright` service in their `compose.local.yaml` file. When running a project in local mode the service runs the Playwright tests automatically and logs the results.
+* GitHub Actions runs all Playwright tests nightly by starting the project in local mode and monitoring the exit code of the `playwright` service. GitHub Actions passes the environment variable `CI=true` which changes the Playwright configuration.
+* You can install Playwright on your machine to run tests outside of Docker. This allows you to use [UI Mode](https://playwright.dev/docs/test-ui-mode) to develop and debug tests locally.
+
+By convention projects place automated tests in a `playwright.spec.ts` file in their project directory.  Here is an example of a simple Playwright test:
+
+```ts
+test('table contains 256', async ({ page }) => {
+  await page.goto('/search');
+  await expect(page.getByRole('table')).toContainText('256');
+});
+```
+
+Projects include a `playwright` container in their `compose.local.yaml` file. For example:
+
+```yaml
+  playwright:
+    image: mcr.microsoft.com/playwright:v1.57.0-noble
+    network_mode: host
+    depends_on:
+      test-data-loader:
+        condition: service_completed_successfully
+    environment:
+      - CI=${CI}
+    volumes:
+      - ../playwright.config.ts:/test/playwright.config.ts:ro
+      - ./playwright.spec.ts:/test/playwright.spec.ts:ro
+    working_dir: /test
+    command: bash -c 'npm i @playwright/test@1.57.0 && npx playwright test'
+```
+
+When writing new tests it is recommended to install Playwright on your machine for a better developer experience. To do so first run `npm install` in the root of the repository and then run `npx playwright install`. The latter will download browser binaries to your computer and install system dependencies. Playwright officially supports Windows, Mac and Ubuntu/Debian. On other Linux distributions it may fail to install system dependencies but it might still work. On Arch Linux for example Chromium and Firefox tests work despite missing dependencies but Safari does not.
+
+Once Playwright is installed on your machine you can use UI Mode:
+
+```
+npx playwright test --ui
+```
+
+In another terminal run a project in local mode and wait for it to be ready before triggering tests in the Playwright UI.
