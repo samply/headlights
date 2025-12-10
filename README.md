@@ -1,3 +1,5 @@
+> I turn my headlights on and suddenly I can see
+
 [![Playwright Tests](https://github.com/samply/headlights/actions/workflows/playwright.yml/badge.svg)](https://github.com/samply/headlights/actions/workflows/playwright.yml)
 
 Headlights implements end-to-end testing of the federated search tools in the [Samply](https://github.com/samply/) organization. The repository is organized into project directories that contain a project README file, Docker Compose files, Playwright tests, and optionally synthetic data. You can get started by copying a command from one of the project README files. Note that running in bridgehead mode requires that you set up of a PKI directory and create a `.env.beam` file as described in the [bridgehead mode](#bridgehead-mode) section.
@@ -193,7 +195,7 @@ Projects include a `playwright` container in their `compose.local.yaml` file. Fo
     command: bash -c 'npm i @playwright/test@1.57.0 && npx playwright test'
 ```
 
-When writing new tests it is recommended to install Playwright on your machine for a better developer experience. To do so first run `npm install` in the root of the repository and then run `npx playwright install`. The latter will download browser binaries to your computer and install system dependencies. Playwright officially supports Windows, Mac and Ubuntu/Debian. On other Linux distributions it may fail to install system dependencies but it might still work. On Arch Linux for example Chromium and Firefox tests work despite missing dependencies but Safari does not.
+When writing new tests it is recommended to install Playwright on your machine for a better developer experience. To do so first run `npm install` in the root of the repository and then run `npx playwright install`. The latter will download browser binaries to your computer and install system dependencies. Playwright officially supports Windows, Mac and Ubuntu/Debian. On other Linux distributions it may fail to install system dependencies but it might still work. On Arch Linux for example, Chromium and Firefox tests work despite missing dependencies but Safari does not.
 
 Once Playwright is installed on your machine you can use UI Mode:
 
