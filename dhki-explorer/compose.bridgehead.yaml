@@ -20,6 +20,7 @@ services:
       BEAM_SECRET: pass123
       CORS_ORIGIN: http://localhost:3000
       TRANSFORM: LENS
+      PROJECT: dhki
 
   proxy1:
     image: samply/beam-proxy:main
