@@ -25,10 +25,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: 'bbmri-eric-locator'
-            compose-files: '-f bbmri-eric-locator/compose.local.yaml'
-          - name: 'bbmri-eric-locator-test'
-            compose-files: '-f bbmri-eric-locator/compose.local.yaml -f bbmri-eric-locator/compose.local.test.yaml'
+          - name: 'bbmri-sample-locator'
+            compose-files: '-f bbmri-sample-locator/compose.local.yaml'
+          - name: 'bbmri-sample-locator-test'
+            compose-files: '-f bbmri-sample-locator/compose.local.yaml -f bbmri-sample-locator/compose.local.test.yaml'
           - name: 'ccp-explorer'
             compose-files: '-f ccp-explorer/compose.local.yaml'
 
