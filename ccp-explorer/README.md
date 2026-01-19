@@ -1,4 +1,4 @@
-## CCP Explorer
+## DKTK BioDataHub Explorer
 
 ```bash
 # Local mode
