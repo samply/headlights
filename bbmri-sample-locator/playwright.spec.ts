@@ -65,26 +65,28 @@ test('diagnosis age donor: >= 2015-01-01', async ({ page }) => {
   await expect(page.getByRole('table')).toContainText('336'); // Specimens
 });
 
-test('donor age: <=30', async ({ page }) => {
-  let query = [[{"id":"ac39d619-9117-4491-9544-e1f1872ef769","key":"donor_age","name":"Donor Age","type":"BETWEEN","values":[{"name":"≤ 30","value":{"max":30},"queryBindId":"27821a2d-29b0-4c68-ad60-b7993cc57c1a"}]}]];
-  await page.goto('/search?query=' + base64Encode(JSON.stringify(query)));
-  await expect(page.getByRole('table')).toContainText('28'); // Patients
-  await expect(page.getByRole('table')).toContainText('259'); // Specimens
-});
+// Donor age tests are disabled because the test patients are getting older over time and the test results change.
 
-test('donor age: 30-50', async ({ page }) => {
-  let query = [[{"id":"a82e1b88-4587-485d-9880-eb7d6bb63b09","key":"donor_age","name":"Donor Age","type":"BETWEEN","values":[{"name":"30 - 50","value":{"min":30,"max":50},"queryBindId":"f355c3bf-9a69-4576-b511-92b6ef58139a"}]}]];
-  await page.goto('/search?query=' + base64Encode(JSON.stringify(query)));
-  await expect(page.getByRole('table')).toContainText('98'); // Patients
-  await expect(page.getByRole('table')).toContainText('982'); // Specimens
-});
+// test('donor age: <=30', async ({ page }) => {
+//   let query = [[{"id":"ac39d619-9117-4491-9544-e1f1872ef769","key":"donor_age","name":"Donor Age","type":"BETWEEN","values":[{"name":"≤ 30","value":{"max":30},"queryBindId":"27821a2d-29b0-4c68-ad60-b7993cc57c1a"}]}]];
+//   await page.goto('/search?query=' + base64Encode(JSON.stringify(query)));
+//   await expect(page.getByRole('table')).toContainText('28'); // Patients
+//   await expect(page.getByRole('table')).toContainText('259'); // Specimens
+// });
 
-test('donor age: >=50', async ({ page }) => {
-  let query = [[{"id":"d2188bd4-0e99-4bb4-865d-b998503c9e18","key":"donor_age","name":"Donor Age","type":"BETWEEN","values":[{"name":"≥ 50","value":{"min":50},"queryBindId":"2f0f47f0-7cc2-4a1f-a94d-73bbd0f6cf73"}]}]];
-  await page.goto('/search?query=' + base64Encode(JSON.stringify(query)));
-  await expect(page.getByRole('table')).toContainText('137'); // Patients
-  await expect(page.getByRole('table')).toContainText('1425'); // Specimens
-});
+// test('donor age: 30-50', async ({ page }) => {
+//   let query = [[{"id":"a82e1b88-4587-485d-9880-eb7d6bb63b09","key":"donor_age","name":"Donor Age","type":"BETWEEN","values":[{"name":"30 - 50","value":{"min":30,"max":50},"queryBindId":"f355c3bf-9a69-4576-b511-92b6ef58139a"}]}]];
+//   await page.goto('/search?query=' + base64Encode(JSON.stringify(query)));
+//   await expect(page.getByRole('table')).toContainText('98'); // Patients
+//   await expect(page.getByRole('table')).toContainText('982'); // Specimens
+// });
+
+// test('donor age: >=50', async ({ page }) => {
+//   let query = [[{"id":"d2188bd4-0e99-4bb4-865d-b998503c9e18","key":"donor_age","name":"Donor Age","type":"BETWEEN","values":[{"name":"≥ 50","value":{"min":50},"queryBindId":"2f0f47f0-7cc2-4a1f-a94d-73bbd0f6cf73"}]}]];
+//   await page.goto('/search?query=' + base64Encode(JSON.stringify(query)));
+//   await expect(page.getByRole('table')).toContainText('137'); // Patients
+//   await expect(page.getByRole('table')).toContainText('1425'); // Specimens
+// });
 
 test('sample type: serum', async ({ page }) => {
   let query = [[{"id":"29d9c87f-7a81-4bdb-aa1b-3f5a272dfd86","key":"sample_kind","name":"Sample type","type":"EQUALS","values":[{"name":"Serum","value":"blood-serum","queryBindId":"75c04077-0312-4fd2-a74f-bf3766f7459c"}]}]];
