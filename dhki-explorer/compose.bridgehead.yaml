@@ -16,7 +16,7 @@ services:
       - host.docker.internal:host-gateway
     environment:
       BEAM_PROXY_URL: http://host.docker.internal:4001
-      BEAM_APP_ID: spot.${DEV_PROXY}.broker.hector.dkfz.de
+      BEAM_APP_ID: spot.${PROXY_ID_SHORT}.broker.hector.dkfz.de
       BEAM_SECRET: pass123
       CORS_ORIGIN: http://localhost:3000
       TRANSFORM: LENS
@@ -29,10 +29,11 @@ services:
     environment:
       BIND_ADDR: 0.0.0.0:4001
       BROKER_URL: https://broker.hector.dkfz.de
-      PROXY_ID: ${DEV_PROXY}.broker.hector.dkfz.de
-      PRIVKEY_FILE: /pki/${DEV_PROXY}.priv.pem
-      ROOTCERT_FILE: /pki/root.crt.pem
+      PROXY_ID: ${PROXY_ID_SHORT}.broker.hector.dkfz.de
+      PRIVKEY_FILE: /priv.key.pem
+      ROOTCERT_FILE: /root.crt.pem
       APP_spot_KEY: pass123
       APP_prism_KEY: pass123
     volumes:
-      - ${PKI_PATH}/broker.hector.dkfz.de:/pki:ro
+      - ${PRIVKEY_FILE}:/priv.key.pem:ro
+      - ${ROOTCERT_FILE}:/root.crt.pem:ro

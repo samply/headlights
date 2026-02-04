@@ -2,13 +2,13 @@
 
 [![Playwright Tests](https://github.com/samply/headlights/actions/workflows/playwright.yml/badge.svg)](https://github.com/samply/headlights/actions/workflows/playwright.yml)
 
-Headlights implements end-to-end testing of the federated search tools in the [Samply](https://github.com/samply/) organization. The repository is organized into project directories that contain a project README file, Docker Compose files, and optionally Playwright tests. You can get started by copying a command from one of the project README files. Note that running in bridgehead mode requires that you set up of a PKI directory and create a `.env.beam` file as described in the [bridgehead mode](#bridgehead-mode) section.
+Headlights implements end-to-end testing of the federated search tools in the [Samply](https://github.com/samply/) organization. The repository is organized into project directories that contain a project README file, Docker Compose files, and optionally Playwright tests. You can get started by copying a command from one of the project README files. Note that running in bridgehead mode requires that you create a `.env` file in the corresponding project directory as described in the [bridgehead mode](#bridgehead-mode) section.
 
-* [Local mode](#local-mode)
-* [Bridgehead mode](#bridgehead-mode)
-* [Emulating other environments using override files](#emulating-other-environments-using-override-files)
-* [Running individual components from source](#running-individual-components-from-source)
-* [Automated tests using Playwright](#automated-tests-using-playwright)
+- [Local mode](#local-mode)
+- [Bridgehead mode](#bridgehead-mode)
+- [Emulating other environments using override files](#emulating-other-environments-using-override-files)
+- [Running individual components from source](#running-individual-components-from-source)
+- [Automated tests using Playwright](#automated-tests-using-playwright)
 
 ## Local mode
 
@@ -42,32 +42,21 @@ All apps use the key `pass123` to connect to a local proxy.
 
 ![Bridgehead mode sketch](./bridgehead-mode-sketch.svg)
 
-In bridgehead mode data is fetched from real bridgeheads. This requires that you have a development proxy enrolled in the Beam network. Headlights requires that you organize your Beam keys in a PKI directory that contains one directory per Beam broker. Each broker directory must contain the broker root certificate in `root.crt.pem` and your private key in a file named after the proxy ID with the `.priv.pem` file extension. For example if your name is John your PKI directory may look as follows:
+In bridgehead mode data is fetched from real bridgeheads. This requires that you have a development proxy enrolled in the Beam network. Create a `.env` file in the corresponding project directory, for example `ccp-explorer/.env`:
 
 ```
-/home/john/pki
-├── broker.bbmri.samply.de
-│   ├── dev-john.priv.pem
-│   └── root.crt.pem
-└── broker.ccp-it.dktk.dkfz.de
-    ├── dev-john.priv.pem
-    └── root.crt.pem
-```
-
-In the root of the repository create the `.env.beam` file containing your development proxy ID and the path to your PKI directory. For example:
-
-```
-DEV_PROXY=dev-john
-PKI_PATH=/home/john/pki
+PROXY_ID_SHORT=dev-tim
+PRIVKEY_FILE=/home/tim/beamkeys/broker.ccp-it.dktk.dkfz.de/dev-tim.priv.pem
+ROOTCERT_FILE=/home/tim/beamkeys/broker.ccp-it.dktk.dkfz.de/root.crt.pem
 ```
 
 Now you are ready to use bridgehead mode. Projects supporting bridgehead mode have a `compose.bridgehead.yaml` file in their project directory. Run a project in bridgehead mode as follows:
 
 ```bash
-docker compose -f [PROJECT DIRECTORY]/compose.bridgehead.yaml --env-file .env.beam up --pull always
+docker compose -f [PROJECT DIRECTORY]/compose.bridgehead.yaml up --pull always
 ```
 
-`compose.bridgehead.yaml` files define the `proxy1` service that uses the private key from the PKI directory to connect to the Beam network. For example:
+`compose.bridgehead.yaml` files define the `proxy1` service that uses the private key to connect to the Beam network. For example:
 
 ```yaml
   proxy1:
@@ -76,14 +65,15 @@ docker compose -f [PROJECT DIRECTORY]/compose.bridgehead.yaml --env-file .env.be
       - 4001:4001
     environment:
       BIND_ADDR: 0.0.0.0:4001
-      BROKER_URL: https://broker.bbmri.samply.de
-      PROXY_ID: ${DEV_PROXY}.broker.bbmri.samply.de
-      PRIVKEY_FILE: /pki/${DEV_PROXY}.priv.pem
-      ROOTCERT_FILE: /pki/root.crt.pem
+      BROKER_URL: https://broker.ccp-it.dktk.dkfz.de
+      PROXY_ID: ${PROXY_ID_SHORT}.broker.ccp-it.dktk.dkfz.de
+      PRIVKEY_FILE: /priv.key.pem
+      ROOTCERT_FILE: /root.crt.pem
       APP_spot_KEY: pass123
       APP_prism_KEY: pass123
     volumes:
-      - ${PKI_PATH}/broker.bbmri.samply.de:/pki:ro
+      - ${PRIVKEY_FILE}:/priv.key.pem:ro
+      - ${ROOTCERT_FILE}:/root.crt.pem:ro
 ```
 
 ## Emulating other environments using override files
@@ -92,7 +82,7 @@ Projects can have more than one environment. The `compose.local.yaml` and `compo
 
 ```bash
 docker compose -f [PROJECT DIRECTORY]/compose.local.yaml -f [PROJECT DIRECTORY]/compose.local.test.yaml up --pull always
-docker compose -f [PROJECT DIRECTORY]/compose.bridgehead.yaml -f [PROJECT DIRECTORY]/compose.bridgehead.test.yaml --env-file .env.beam up --pull always
+docker compose -f [PROJECT DIRECTORY]/compose.bridgehead.yaml -f [PROJECT DIRECTORY]/compose.bridgehead.test.yaml up --pull always
 ```
 
 Override files commonly override image tags, the Beam broker, and the sites to query. For example:
@@ -107,15 +97,18 @@ services:
   spot:
     image: samply/rustyspot:main
     environment:
-      BEAM_APP_ID: spot.${DEV_PROXY}.broker-test.bbmri-test.samply.de
+      BEAM_APP_ID: spot.${PROXY_ID_SHORT_TEST}.broker-test.bbmri-test.samply.de
       SITES: eric-test,uppsala-test,lodz-test,DNB-Test
 
   proxy1:
     environment:
       BROKER_URL: https://broker-test.bbmri-test.samply.de
-      PROXY_ID: ${DEV_PROXY}.broker-test.bbmri-test.samply.de
+      PROXY_ID: ${PROXY_ID_SHORT_TEST}.broker-test.bbmri-test.samply.de
+      PRIVKEY_FILE: /priv.key.pem
+      ROOTCERT_FILE: /root.crt.pem
     volumes:
-      - ${PKI_PATH}/broker-test.bbmri-test.samply.de:/pki:ro
+      - ${PRIVKEY_FILE_TEST}:/priv.key.pem:ro
+      - ${ROOTCERT_FILE_TEST}:/root.crt.pem:ro
 ```
 
 ## Running individual components from source

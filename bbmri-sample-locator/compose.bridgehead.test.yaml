@@ -7,18 +7,21 @@ services:
   spot:
     image: samply/rustyspot:main
     environment:
-      BEAM_APP_ID: spot.${DEV_PROXY}.broker-test.bbmri-test.samply.de
+      BEAM_APP_ID: spot.${PROXY_ID_SHORT_TEST}.broker-test.bbmri-test.samply.de
       SITES: &sites eric-test,uppsala-test,lodz-test,DNB-Test
 
   prism:
     image: samply/prism:develop
     environment:
-      BEAM_APP_ID_LONG: prism.${DEV_PROXY}.broker-test.bbmri-test.samply.de
+      BEAM_APP_ID_LONG: prism.${PROXY_ID_SHORT_TEST}.broker-test.bbmri-test.samply.de
       SITES: *sites
 
   proxy1:
     environment:
       BROKER_URL: https://broker-test.bbmri-test.samply.de
-      PROXY_ID: ${DEV_PROXY}.broker-test.bbmri-test.samply.de
+      PROXY_ID: ${PROXY_ID_SHORT_TEST}.broker-test.bbmri-test.samply.de
+      PRIVKEY_FILE: /priv.key.pem
+      ROOTCERT_FILE: /root.crt.pem
     volumes:
-      - ${PKI_PATH}/broker-test.bbmri-test.samply.de:/pki:ro
+      - ${PRIVKEY_FILE_TEST}:/priv.key.pem:ro
+      - ${ROOTCERT_FILE_TEST}:/root.crt.pem:ro

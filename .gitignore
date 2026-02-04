@@ -1,4 +1,4 @@
-/.env.beam
+.env
 
 # Playwright
 node_modules/
