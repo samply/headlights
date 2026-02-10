@@ -107,3 +107,8 @@ Right now, the only env var printed out is the PUBLIC_SPOT_URL, but this is alre
 ```bash
 API_KEY='pass123' BEAM_APP_ID_LONG='focus.proxy2.broker' BEAM_PROXY_URL='http://localhost:4002' BLAZE_URL='http://localhost:8080/fhir/' ENDPOINT_TYPE='blaze' OBFUSCATE='no'
 ```
+
+## For loading test data
+
+You could use something like this to upload all the bundles in the fhir-test-data directory to the blaze- 
+https://github.com/samply/headlights/blob/e662605b1cbaf498e7e0dbd5349ed10464a834ff/ccp-explorer/compose.local.yaml#L47-L54
