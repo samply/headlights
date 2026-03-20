@@ -1,0 +1,139 @@
+services:
+  bbmri-sample-locator:
+    image: samply/bbmri-sample-locator:latest
+    ports:
+      - 3000:3000
+    environment:
+      PUBLIC_SPOT_URL: http://localhost:8055
+
+  spot:
+    image: samply/rustyspot:latest
+    depends_on:
+      - proxy1
+    ports:
+      - 8055:8055
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    environment:
+      BEAM_PROXY_URL: http://host.docker.internal:4001
+      BEAM_APP_ID: spot.proxy1.broker
+      BEAM_SECRET: pass123
+      CORS_ORIGIN: http://localhost:3000
+      PRISM_URL: http://host.docker.internal:8056
+      TRANSFORM: LENS
+      PROJECT: bbmri
+      SITES: &sites "proxy2,proxy3"
+
+  prism:
+    image: samply/prism:main
+    depends_on:
+      test-data-loader-miabis:
+        condition: service_completed_successfully
+    ports:
+      - 8056:8056
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    environment:
+      BIND_ADDR: 0.0.0.0:8056
+      BEAM_PROXY_URL: http://host.docker.internal:4001
+      BEAM_APP_ID_LONG: prism.proxy1.broker
+      API_KEY: pass123
+      CORS_ORIGIN: any
+      PROJECT: bbmri
+      SITES: *sites
+
+  focus-miabis:
+    image: samply/focus:localbuild
+    depends_on:
+      - proxy2
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    environment:
+      BEAM_PROXY_URL: http://host.docker.internal:4002
+      BEAM_APP_ID_LONG: focus.proxy2.broker
+      API_KEY: pass123
+      ENDPOINT_TYPE: blaze
+      BLAZE_URL: http://host.docker.internal:8080/fhir/
+      OBFUSCATE: no
+      CQL_FLAVOUR: miabis
+
+  blaze-miabis:
+    image: samply/blaze:0.32
+    ports:
+      - 8080:8080
+    healthcheck:
+      test: curl -f http://localhost:8080/fhir/metadata
+      start_period: 1m
+
+  test-data-loader-miabis:
+    image: curlimages/curl:latest
+    depends_on:
+      blaze-miabis:
+        condition: service_healthy
+    volumes:
+      - ./test-bundle.json:/test-bundle.json:ro
+    entrypoint:
+      - curl
+      - -sf
+      - -X
+      - POST
+      - http://blaze-miabis:8080/fhir
+      - -H
+      - "Content-Type: application/fhir+json"
+      - --data-binary
+      - "@/test-bundle.json"
+
+  focus-bbmri:
+    image: samply/focus:localbuild
+    depends_on:
+      - proxy3
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    environment:
+      BEAM_PROXY_URL: http://host.docker.internal:4003
+      BEAM_APP_ID_LONG: focus.proxy3.broker
+      API_KEY: pass123
+      ENDPOINT_TYPE: blaze
+      BLAZE_URL: http://host.docker.internal:8081/fhir/
+      OBFUSCATE: no
+
+  blaze-bbmri:
+    image: samply/blaze:0.32
+    ports:
+      - 8081:8080
+    healthcheck:
+      test: curl -f http://localhost:8080/fhir/metadata
+      start_period: 1m
+
+  test-data-loader-bbmri:
+    image: curlimages/curl:latest
+    depends_on:
+      blaze-bbmri:
+        condition: service_healthy
+    volumes:
+      - ./test-bundle-bbmri.json:/test-bundle-bbmri.json:ro
+    entrypoint:
+      - curl
+      - -sf
+      - -X
+      - POST
+      - http://blaze-bbmri:8080/fhir
+      - -H
+      - "Content-Type: application/fhir+json"
+      - --data-binary
+      - "@/test-bundle-bbmri.json"
+
+  tester:
+    image: alpine:latest
+    network_mode: host
+    depends_on:
+      test-data-loader-miabis:
+        condition: service_completed_successfully
+      test-data-loader-bbmri:
+        condition: service_completed_successfully
+    volumes:
+      - ./test.sh:/test.sh:ro
+    command: sh -c 'apk add -q curl jq bash && bash /test.sh'
+
+include:
+  - ../compose.localbeam.yaml

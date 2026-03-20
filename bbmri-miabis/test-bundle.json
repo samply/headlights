@@ -1,0 +1,185 @@
+{
+  "resourceType": "Bundle",
+  "type": "transaction",
+  "entry": [
+    {
+      "fullUrl": "urn:uuid:patient-1",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "patient-1",
+        "gender": "female",
+        "birthDate": "1980-03-15"
+      },
+      "request": { "method": "PUT", "url": "Patient/patient-1" }
+    },
+    {
+      "fullUrl": "urn:uuid:patient-2",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "patient-2",
+        "gender": "male",
+        "birthDate": "1975-07-22"
+      },
+      "request": { "method": "PUT", "url": "Patient/patient-2" }
+    },
+    {
+      "fullUrl": "urn:uuid:condition-1",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "condition-1",
+        "subject": { "reference": "Patient/patient-1" },
+        "code": {
+          "coding": [
+            {
+              "system": "http://hl7.org/fhir/sid/icd-10",
+              "code": "C34"
+            }
+          ]
+        },
+        "onsetDateTime": "2015-06-01"
+      },
+      "request": { "method": "PUT", "url": "Condition/condition-1" }
+    },
+    {
+      "fullUrl": "urn:uuid:condition-2",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "condition-2",
+        "subject": { "reference": "Patient/patient-2" },
+        "code": {
+          "coding": [
+            {
+              "system": "http://hl7.org/fhir/sid/icd-10",
+              "code": "C18"
+            }
+          ]
+        },
+        "onsetDateTime": "2018-11-10"
+      },
+      "request": { "method": "PUT", "url": "Condition/condition-2" }
+    },
+    {
+      "fullUrl": "urn:uuid:specimen-1",
+      "resource": {
+        "resourceType": "Specimen",
+        "id": "specimen-1",
+        "subject": { "reference": "Patient/patient-1" },
+        "extension": [
+          {
+            "url": "https://fhir.bbmri-eric.eu/StructureDefinition/miabis-sample-collection-extension",
+            "valueIdentifier": { "value": "collection-a" }
+          }
+        ],
+        "type": {
+          "coding": [
+            {
+              "system": "https://fhir.bbmri-eric.eu/CodeSystem/miabis-detailed-samply-type-cs",
+              "code": "Plasma"
+            }
+          ]
+        },
+        "processing": [
+          {
+            "extension": [
+              {
+                "url": "https://fhir.bbmri-eric.eu/StructureDefinition/miabis-sample-storage-temperature-extension",
+                "valueCodeableConcept": {
+                  "coding": [
+                    {
+                      "system": "https://fhir.bbmri-eric.eu/CodeSystem/miabis-storage-temperature-cs",
+                      "code": "LN"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "collection": { "collectedDateTime": "2015-06-05" }
+      },
+      "request": { "method": "PUT", "url": "Specimen/specimen-1" }
+    },
+    {
+      "fullUrl": "urn:uuid:specimen-2",
+      "resource": {
+        "resourceType": "Specimen",
+        "id": "specimen-2",
+        "subject": { "reference": "Patient/patient-1" },
+        "extension": [
+          {
+            "url": "https://fhir.bbmri-eric.eu/StructureDefinition/miabis-sample-collection-extension",
+            "valueIdentifier": { "value": "collection-a" }
+          }
+        ],
+        "type": {
+          "coding": [
+            {
+              "system": "https://fhir.bbmri-eric.eu/CodeSystem/miabis-detailed-samply-type-cs",
+              "code": "TissueFixed"
+            }
+          ]
+        },
+        "processing": [
+          {
+            "extension": [
+              {
+                "url": "https://fhir.bbmri-eric.eu/StructureDefinition/miabis-sample-storage-temperature-extension",
+                "valueCodeableConcept": {
+                  "coding": [
+                    {
+                      "system": "https://fhir.bbmri-eric.eu/CodeSystem/miabis-storage-temperature-cs",
+                      "code": "RT"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "collection": { "collectedDateTime": "2015-06-05" }
+      },
+      "request": { "method": "PUT", "url": "Specimen/specimen-2" }
+    },
+    {
+      "fullUrl": "urn:uuid:specimen-3",
+      "resource": {
+        "resourceType": "Specimen",
+        "id": "specimen-3",
+        "subject": { "reference": "Patient/patient-2" },
+        "extension": [
+          {
+            "url": "https://fhir.bbmri-eric.eu/StructureDefinition/miabis-sample-collection-extension",
+            "valueIdentifier": { "value": "collection-b" }
+          }
+        ],
+        "type": {
+          "coding": [
+            {
+              "system": "https://fhir.bbmri-eric.eu/CodeSystem/miabis-detailed-samply-type-cs",
+              "code": "WholeBlood"
+            }
+          ]
+        },
+        "processing": [
+          {
+            "extension": [
+              {
+                "url": "https://fhir.bbmri-eric.eu/StructureDefinition/miabis-sample-storage-temperature-extension",
+                "valueCodeableConcept": {
+                  "coding": [
+                    {
+                      "system": "https://fhir.bbmri-eric.eu/CodeSystem/miabis-storage-temperature-cs",
+                      "code": "LN"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "collection": { "collectedDateTime": "2018-11-15" }
+      },
+      "request": { "method": "PUT", "url": "Specimen/specimen-3" }
+    }
+  ]
+}
