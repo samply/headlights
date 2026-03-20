@@ -1,39 +1,55 @@
-## MIABIS-on-FHIR Locator
+## MIABIS-on-FHIR + BBMRI.de mixed-node Locator
+
+Tests a federated search across two nodes: one running MIABIS-on-FHIR data (focus with `CQL_FLAVOUR=miabis`) and one running BBMRI.de data (focus with default flavour).
 
 ```bash
-# Local mode
+# Local mode (manual UI testing at http://localhost:3000/search/)
 docker compose -f bbmri-miabis/compose.local.yaml up --pull always
 
-# Local mode (Test)
+# Local mode with automated tests (exits with test result code)
 docker compose -f bbmri-miabis/compose.local.yaml up --pull always --exit-code-from tester
 ```
 
-Then open http://localhost:3000/search/ in your browser for manual testing.
-
 ### What this tests
 
-Five scenarios against a 2-patient, 3-specimen MIABIS-on-FHIR dataset:
+Eight scenarios across a 2-node federation (MIABIS-on-FHIR node + BBMRI.de node). Counts are totals across both sites.
 
-| Criterion | Expected patients |
-|---|---|
-| *(empty)* | 2 |
-| `storage_temperature = temperatureRoom` | 1 (specimen with RT storage, patient p1) |
-| `storage_temperature = temperatureLN` | 2 (specimens with LN storage, patients p1 + p2) |
-| `sample_kind = blood-plasma` | 1 (Plasma specimen, patient p1) |
-| `sample_kind = whole-blood` | 1 (WholeBlood specimen, patient p2) |
+**Test data summary:**
+- MIABIS node (`proxy2`, `CQL_FLAVOUR=miabis`): p1 (female, C34) — Plasma/LN + TissueFixed/RT; p2 (male, C18) — WholeBlood/LN
+- BBMRI.de node (`proxy3`, default CQL flavour): bbmri-p1 (female, C50) — blood-plasma/LN; bbmri-p2 (male, C61) — whole-blood/RT
 
-Scenarios 2–5 validate the `CODE_WORKAROUNDS` translation in focus: without it,
-the Lens codes (`temperatureRoom`, `blood-plasma`, etc.) do not exist in MIABIS
-FHIR data and all queries silently return 0.
+**Mixed-node scenarios (validate totals across both sites):**
 
-### Key difference from `bbmri-sample-locator`
+| Criterion | MIABIS | BBMRI.de | Total |
+|---|---|---|---|
+| *(empty AST)* | 2 | 2 | 4 |
+| `storage_temperature = temperatureRoom` | 1 (p1, RT specimen) | 1 (bbmri-p2, Room) | 2 |
+| `storage_temperature = temperatureLN` | 2 (p1 + p2, LN specimens) | 1 (bbmri-p1, LN) | 3 |
+| `sample_kind = blood-plasma` | 1 (p1, Plasma) | 1 (bbmri-p1) | 2 |
+| `sample_kind = whole-blood` | 1 (p2, WholeBlood) | 1 (bbmri-p2) | 2 |
 
-Focus is started with `CQL_FLAVOUR=miabis`, which selects the MIABIS-on-FHIR
-CQL template instead of the default BBMRI one. Spot continues to send
-`PROJECT=bbmri` (unchanged); only the per-site focus config differs.
+**Diagnosis scenarios (validate BBMRI.de node is unaffected by MIABIS workarounds):**
+
+| Criterion | MIABIS | BBMRI.de | Total |
+|---|---|---|---|
+| `diagnosis = C34` | 1 (p1) | 0 | 1 |
+| `diagnosis = C50` | 0 | 1 (bbmri-p1) | 1 |
+| `diagnosis = C61` | 0 | 1 (bbmri-p2) | 1 |
+
+### Key design points
+
+**`CQL_FLAVOUR=miabis` (per-site focus config):** Selects the MIABIS-on-FHIR CQL template in focus. Spot continues to send `PROJECT=bbmri` unchanged — only the per-site focus environment variable differs. The BBMRI.de focus instance runs without `CQL_FLAVOUR` and uses the default BBMRI template.
+
+**`CODE_WORKAROUNDS` translation:** Without it, Lens codes (`temperatureRoom`, `blood-plasma`, etc.) do not exist in MIABIS FHIR data and all filter queries silently return 0. The mixed-node temperature and sample_kind scenarios validate that translation works correctly on the MIABIS node while leaving the BBMRI.de node unaffected.
+
+**Rustyspot 0.2.x compatibility:** Both focus instances use `samply/focus:localbuild` (built from the `feature/miabis` branch) to pick up the rustyspot 0.2.x body-format compatibility fix. Rustyspot 0.2.x sends the query as a raw `ast::Operation` JSON object rather than the previously-expected base64-wrapped envelope.
 
 ### Test data
 
-`test-bundle.json` contains:
+`test-bundle.json` — MIABIS-on-FHIR FHIR transaction bundle:
 - Patient p1 (female, dx C34): Specimen Plasma/LN, Specimen TissueFixed/RT
 - Patient p2 (male, dx C18): Specimen WholeBlood/LN
+
+`test-bundle-bbmri.json` — BBMRI.de FHIR transaction bundle:
+- Patient bbmri-p1 (female, dx C50): Specimen blood-plasma/LN
+- Patient bbmri-p2 (male, dx C61): Specimen whole-blood/RT
