@@ -107,7 +107,6 @@ services:
 
   tester:
     image: alpine:latest
-    network_mode: host
     depends_on:
       test-data-loader-miabis:
         condition: service_completed_successfully

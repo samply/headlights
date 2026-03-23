@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SPOT_URL="http://localhost:8055"
+SPOT_URL="http://spot:8055"
 PASS=0
 FAIL=0
 
@@ -37,8 +37,7 @@ run_scenario() {
     local id="$3"
     local expected="$4"
 
-    local actual
-    actual=$(query_total "${ast_obj}" "${id}" || echo "")
+    local actual; actual=$(query_total "${ast_obj}" "${id}" || echo "")
 
     if [[ "${actual}" == "${expected}" ]]; then
         printf "  ok    %s  (total=%s)\n" "${desc}" "${actual}"
