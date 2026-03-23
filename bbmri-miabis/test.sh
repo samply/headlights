@@ -17,7 +17,7 @@ query_total() {
     local ast_obj="$1"
     local id="$2"
     local payload query
-    payload=$(printf '%s' "${ast_obj}" | base64 | tr -d '\n')
+    payload=$(jq -cn --arg id "${id}" --argjson ast "${ast_obj}" '{"ast":$ast,"id":$id}' | base64 | tr -d '\n')
     query=$(jq -cn --arg p "${payload}" '{"lang":"ast","payload":$p}' | base64 | tr -d '\n')
     curl -sf -m 10 \
         -X POST "${SPOT_URL}/beam" \
