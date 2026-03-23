@@ -13,31 +13,20 @@ wait_for_spot() {
     echo " ready."
 }
 
-# POST a Lens AST to Spot and return the sum of patient counts across all sites.
-# Spot 0.2.x uses a two-step API:
-#   POST /beam  → 201 Created (submits the query)
-#   GET  /beam/{id} → SSE stream; each data: line is one site's MeasureReport
-# The POST body requires:
-#   - "query": the AST as a JSON string (not a nested object)
-#   - "id":    a valid UUID
 query_total() {
     local ast_obj="$1"
     local id="$2"
-    local query_str
-    query_str=$(printf '%s' "${ast_obj}" | python3 -c "import sys,json; print(json.dumps(sys.stdin.read()))")
-    # Step 1: submit the query
+    local payload query
+    payload=$(printf '%s' "${ast_obj}" | base64 | tr -d '\n')
+    query=$(jq -cn --arg p "${payload}" '{"lang":"ast","payload":$p}' | base64 | tr -d '\n')
     curl -sf -m 10 \
         -X POST "${SPOT_URL}/beam" \
         -H "Content-Type: application/json" \
-        -d "{\"query\":${query_str},\"id\":\"${id}\"}" \
+        -d "$(jq -cn --arg q "${query}" --arg id "${id}" '{"query":$q,"id":$id}')" \
     || return 1
-    # Step 2: stream SSE results
-    # Each data: line is a Beam task result: {"body":"<b64>","status":"succeeded"|"permfailed",...}
-    # body decodes to {"totals":{"patient":N,...},"stratifiers":{...}}
     curl -sf -m 30 -N \
         "${SPOT_URL}/beam/${id}" \
-    | grep '^data:' \
-    | sed 's/^data: //' \
+    | sed -n 's/^data: //p' \
     | jq -r 'if .status == "succeeded" then (.body | @base64d | fromjson | .totals.patient) else 0 end // 0' \
     | awk '{s+=$1} END {print s+0}'
 }
@@ -62,14 +51,6 @@ run_scenario() {
 
 wait_for_spot
 echo ""
-
-# Test data summary:
-#   MIABIS site (proxy2, CQL_FLAVOUR=miabis):
-#     p1 female C34: Plasma/LN + TissueFixed/RT
-#     p2 male   C18: WholeBlood/LN
-#   BBMRI.de site (proxy3, default CQL flavour):
-#     bbmri-p1 female C50: blood-plasma/temperatureLN
-#     bbmri-p2 male   C61: whole-blood/temperatureRoom
 
 echo "=== Mixed-node scenarios (MIABIS + BBMRI.de, total across both sites) ==="
 echo ""

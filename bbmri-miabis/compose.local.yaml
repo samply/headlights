@@ -72,16 +72,7 @@ services:
         condition: service_healthy
     volumes:
       - ./test-bundle.json:/test-bundle.json:ro
-    entrypoint:
-      - curl
-      - -sf
-      - -X
-      - POST
-      - http://blaze-miabis:8080/fhir
-      - -H
-      - "Content-Type: application/fhir+json"
-      - --data-binary
-      - "@/test-bundle.json"
+    entrypoint: ["curl", "-sf", "-X", "POST", "http://blaze-miabis:8080/fhir", "-H", "Content-Type: application/fhir+json", "-d", "@/test-bundle.json"]
 
   focus-bbmri:
     image: samply/focus:localbuild
@@ -112,16 +103,7 @@ services:
         condition: service_healthy
     volumes:
       - ./test-bundle-bbmri.json:/test-bundle-bbmri.json:ro
-    entrypoint:
-      - curl
-      - -sf
-      - -X
-      - POST
-      - http://blaze-bbmri:8080/fhir
-      - -H
-      - "Content-Type: application/fhir+json"
-      - --data-binary
-      - "@/test-bundle-bbmri.json"
+    entrypoint: ["curl", "-sf", "-X", "POST", "http://blaze-bbmri:8080/fhir", "-H", "Content-Type: application/fhir+json", "-d", "@/test-bundle-bbmri.json"]
 
   tester:
     image: alpine:latest
