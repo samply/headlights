@@ -1,5 +1,5 @@
 services:
-  ccp-explorer:
+  lens:
     image: samply/ccp-explorer:latest
     ports:
       - 3000:3000

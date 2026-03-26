@@ -1,8 +1,8 @@
 services:
-  ccp-explorer:
+  lens:
     image: samply/ccp-explorer:main
     environment:
       PUBLIC_ENVIRONMENT: test
-  
+
   spot:
     image: samply/rustyspot:main

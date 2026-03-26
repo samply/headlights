@@ -1,5 +1,5 @@
 services:
-  dhki-explorer:
+  lens:
     image: samply/dhki-explorer:main
     ports:
       - 3000:3000

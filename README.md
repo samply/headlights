@@ -29,12 +29,12 @@ include:
 
 The `compose.localbeam.yaml` file brings up a local Beam network consisting of a Beam broker and the following Beam proxies:
 
-| Service name | Beam proxy ID | Intended use | Host port | Configured apps |
-| ----- | ----- | --- | --- | --- |
-| `proxy1` | `proxy1.broker` | Connect frontend via Spot | `4001` | `spot`, `prism` |
-| `proxy2` | `proxy2.broker` | Connect database via Focus | `4002` | `focus` |
-| `proxy3` | `proxy3.broker` | Connect database via Focus (optional) | `4003` | `focus` |
-| `proxy4` | `proxy4.broker` | Connect database via Focus (optional) | `4004` | `focus` |
+| Service name | Beam proxy ID   | Intended use                          | Host port | Configured apps |
+| ------------ | --------------- | ------------------------------------- | --------- | --------------- |
+| `proxy1`     | `proxy1.broker` | Connect frontend via Spot             | `4001`    | `spot`, `prism` |
+| `proxy2`     | `proxy2.broker` | Connect database via Focus            | `4002`    | `focus`         |
+| `proxy3`     | `proxy3.broker` | Connect database via Focus (optional) | `4003`    | `focus`         |
+| `proxy4`     | `proxy4.broker` | Connect database via Focus (optional) | `4004`    | `focus`         |
 
 All apps use the key `pass123` to connect to a local proxy.
 
@@ -89,7 +89,7 @@ Override files commonly override image tags, the Beam broker, and the sites to q
 
 ```yaml
 services:
-  bbmri-sample-locator:
+  lens:
     image: samply/bbmri-sample-locator:main
     environment:
       PUBLIC_ENVIRONMENT: test
