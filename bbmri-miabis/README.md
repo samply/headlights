@@ -59,3 +59,11 @@ Eight scenarios across a 2-node federation (MIABIS-on-FHIR node + BBMRI.de node)
 **`--exit-code-from tester` kills the stack immediately (Docker Compose v5):** `--exit-code-from` implies `--abort-on-container-exit`, so `pki-setup` exiting normally after PKI initialisation terminates the entire stack before Blaze becomes healthy. Use `up -d` and run `test.sh` directly instead (see commands above).
 
 **All scenarios return `got=` on second run:** Spot does not re-stream results for a task ID it has already processed. Run `docker compose -f bbmri-miabis/compose.local.yaml down -v` before re-running tests to get a clean stack with fresh task IDs.
+
+**Spot rejects non-UUID query IDs:** IDs must be in `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx` hex format. Shorthand forms like `test-0001-0000-...` are silently rejected.
+
+**BBMRI.de filter queries silently return 0:** BBMRI.de focus CQL uses `fhir.bbmri.de` URLs for the StorageTemperature extension and SampleMaterialType CodeSystem. If `test-bundle-bbmri.json` is modified and the wrong namespace (`fhir.bbmri-eric.eu`) is used instead, all filter queries on the BBMRI.de node return 0 with no error.
+
+**`samply/focus:localbuild` image must be built locally:** This image is not published to Docker Hub. Build it from the `feature/miabis` branch of `samply/focus`. Two gotchas when building:
+- Build inside a `rust:slim-bookworm` container (not on the host) to avoid a glibc version mismatch with the `distroless/cc-debian12` runtime base.
+- Always pass `--build-arg TARGETARCH=amd64 --build-arg COMPONENT=focus`; without `COMPONENT=focus` the entire build directory is copied to `/usr/local/bin/focus`, making it a directory instead of an executable.
