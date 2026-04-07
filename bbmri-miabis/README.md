@@ -6,8 +6,10 @@ Tests a federated search across two nodes: one running MIABIS-on-FHIR data (focu
 # Local mode (manual UI testing at http://localhost:3000/search/)
 docker compose -f bbmri-miabis/compose.local.yaml up --pull always
 
-# Local mode with automated tests (exits with test result code)
-docker compose -f bbmri-miabis/compose.local.yaml up --pull always --exit-code-from tester
+# Local mode with automated tests
+docker compose -f bbmri-miabis/compose.local.yaml up -d
+sleep 90  # wait for Blaze health checks and data loading
+bash bbmri-miabis/test.sh
 ```
 
 ### What this tests
@@ -51,3 +53,9 @@ Eight scenarios across a 2-node federation (MIABIS-on-FHIR node + BBMRI.de node)
 `test-bundle-bbmri.json` — BBMRI.de FHIR transaction bundle:
 - Patient bbmri-p1 (female, dx C50): Specimen blood-plasma/LN
 - Patient bbmri-p2 (male, dx C61): Specimen whole-blood/RT
+
+### Troubleshooting
+
+**`--exit-code-from tester` kills the stack immediately (Docker Compose v5):** `--exit-code-from` implies `--abort-on-container-exit`, so `pki-setup` exiting normally after PKI initialisation terminates the entire stack before Blaze becomes healthy. Use `up -d` and run `test.sh` directly instead (see commands above).
+
+**All scenarios return `got=` on second run:** Spot does not re-stream results for a task ID it has already processed. Run `docker compose -f bbmri-miabis/compose.local.yaml down -v` before re-running tests to get a clean stack with fresh task IDs.
