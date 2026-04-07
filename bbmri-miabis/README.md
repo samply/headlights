@@ -42,8 +42,6 @@ Eight scenarios across a 2-node federation (MIABIS-on-FHIR node + BBMRI.de node)
 
 **`CODE_WORKAROUNDS` translation:** Without it, Lens codes (`temperatureRoom`, `blood-plasma`, etc.) do not exist in MIABIS FHIR data and all filter queries silently return 0. The mixed-node temperature and sample_kind scenarios validate that translation works correctly on the MIABIS node while leaving the BBMRI.de node unaffected.
 
-**Rustyspot 0.2.x compatibility:** Both focus instances use `samply/focus:localbuild` (built from the `feature/miabis` branch) to pick up the rustyspot 0.2.x body-format compatibility fix. Rustyspot 0.2.x sends the query as a raw `ast::Operation` JSON object rather than the previously-expected base64-wrapped envelope.
-
 ### Test data
 
 `test-bundle.json` — MIABIS-on-FHIR FHIR transaction bundle:

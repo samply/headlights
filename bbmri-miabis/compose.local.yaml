@@ -29,6 +29,8 @@ services:
     depends_on:
       test-data-loader-miabis:
         condition: service_completed_successfully
+      test-data-loader-bbmri:
+        condition: service_completed_successfully
     ports:
       - 8056:8056
     extra_hosts:
@@ -107,6 +109,7 @@ services:
 
   tester:
     image: alpine:latest
+    network_mode: host
     depends_on:
       test-data-loader-miabis:
         condition: service_completed_successfully

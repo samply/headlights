@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SPOT_URL="http://spot:8055"
+SPOT_URL="http://localhost:8055"
 PASS=0
 FAIL=0
 
