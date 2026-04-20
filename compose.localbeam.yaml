@@ -1,6 +1,7 @@
 services:
   vault:
     image: hashicorp/vault:latest
+    user: root
     environment:
       VAULT_DEV_ROOT_TOKEN_ID: token123
     healthcheck:
@@ -9,6 +10,7 @@ services:
 
   pki-setup:
     image: hashicorp/vault:latest
+    user: root
     depends_on:
       vault:
         condition: service_healthy
