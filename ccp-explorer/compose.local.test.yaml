@@ -6,3 +6,6 @@ services:
 
   spot:
     image: samply/rustyspot:main
+
+  focus:
+    image: samply/focus:develop
