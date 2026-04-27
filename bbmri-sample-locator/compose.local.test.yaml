@@ -9,3 +9,6 @@ services:
 
   prism:
     image: samply/prism:develop
+
+  focus:
+    image: samply/focus:develop
