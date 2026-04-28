@@ -1,6 +1,6 @@
 services:
   vault:
-    image: hashicorp/vault:latest
+    image: hashicorp/vault:1.21
     environment:
       VAULT_DEV_ROOT_TOKEN_ID: token123
     healthcheck:
@@ -8,7 +8,7 @@ services:
       start_period: 1m
 
   pki-setup:
-    image: hashicorp/vault:latest
+    image: hashicorp/vault:1.21
     depends_on:
       vault:
         condition: service_healthy
