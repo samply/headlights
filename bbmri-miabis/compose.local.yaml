@@ -45,7 +45,7 @@ services:
       SITES: *sites
 
   focus-miabis:
-    image: samply/focus:develop
+    image: samply/focus:main
     depends_on:
       - proxy2
     extra_hosts:
@@ -77,7 +77,7 @@ services:
     entrypoint: ["curl", "-sf", "-X", "POST", "http://blaze-miabis:8080/fhir", "-H", "Content-Type: application/fhir+json", "-d", "@/test-bundle.json"]
 
   focus-bbmri:
-    image: samply/focus:develop
+    image: samply/focus:main
     depends_on:
       - proxy3
     extra_hosts:
