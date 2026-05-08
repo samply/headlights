@@ -74,7 +74,7 @@ services:
       PATIENT_COUNT: "256"
 
   playwright:
-    image: mcr.microsoft.com/playwright:v1.57.0-noble
+    image: mcr.microsoft.com/playwright:v1.59.1-noble
     network_mode: host
     depends_on:
       test-data-loader:
@@ -85,7 +85,7 @@ services:
       - ../playwright.config.ts:/test/playwright.config.ts:ro
       - ./playwright.spec.ts:/test/playwright.spec.ts:ro
     working_dir: /test
-    command: bash -c 'npm i @playwright/test@1.57.0 && npx playwright test'
+    command: bash -c 'npm i @playwright/test@1.59.1 && npx playwright test'
 
 include:
   - ../compose.localbeam.yaml
