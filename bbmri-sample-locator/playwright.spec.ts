@@ -19,12 +19,14 @@ test('gender: male', async ({ page }) => {
 test('diagnosis: C50.%', async ({ page }) => {
   let query = [[{ "id": "c350b3b2-e220-44a1-ade2-cd79ee4a05ce", "name": "Diagnosis ICD-10", "key": "diagnosis", "type": "EQUALS", "values": [{ "value": "C50.%", "name": "C50.%", "description": "Malignant neoplasm of breast", "queryBindId": "f79bdbeb-1b02-4733-b1d4-ea939570790d" }] }]];
   await page.goto('/search?query=' + base64Encode(JSON.stringify(query)));
-  const text = await page.getByRole('table').textContent() ?? '';
-  // Old focus behavior: patient and specimen are checked for diagnosis
-  const match2and20 = text.includes('2') && text.includes('20');
-  // New focus behavior: only patient is checked for diagnosis
-  const match1and7 = text.includes('1') && text.includes('7');
-  expect(match2and20 || match1and7, 'Expected (2,20) or (1,7)').toBe(true);
+  await expect.poll(async () => {
+    const text = await page.getByRole('table').textContent() ?? '';
+    // Old focus behavior: patient and specimen are checked for diagnosis
+    const match2and20 = text.includes('2') && text.includes('20');
+    // New focus behavior: only patient is checked for diagnosis
+    const match1and7 = text.includes('1') && text.includes('7');
+    return match2and20 || match1and7;
+  }, { message: 'Expected (2,20) or (1,7)' }).toBe(true);
 });
 
 test('diagnosis age donor: <=30', async ({ page }) => {
