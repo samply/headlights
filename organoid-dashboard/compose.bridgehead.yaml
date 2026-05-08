@@ -1,0 +1,61 @@
+services:
+  organoid-dashboard:
+    image: samply/organoid-dashboard:main
+    ports:
+      - 5173:80
+    environment:
+      SPOT_PUBLIC_URL: http://localhost:8055
+      SPOT_INTERNAL_URL: http://localhost:8056
+
+  spot-public:
+    image: samply/rustyspot:latest
+    depends_on:
+      - proxy1
+    ports:
+      - 8055:8055
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    environment:
+      BEAM_PROXY_URL: http://host.docker.internal:4001
+      BEAM_APP_ID: spot.${PROXY_ID_SHORT}.broker.ccp-it.dktk.dkfz.de
+      BEAM_SECRET: pass123
+      CORS_ORIGIN: http://localhost:5173
+      PROJECT: organoid
+      QUERY_FILTER: eyJwYXlsb2FkIjoiT1JHQU5PSURfREFTSEJPQVJEX1BVQkxJQyJ9 # ORGANOID_DASHBOARD_PUBLIC
+      SITES: &sites dresden,muenchen-tum,frankfurt
+
+  spot-internal:
+    image: samply/rustyspot:latest
+    depends_on:
+      - proxy1
+    ports:
+      - 8056:8055
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    environment:
+      BEAM_PROXY_URL: http://host.docker.internal:4001
+      BEAM_APP_ID: prism.${PROXY_ID_SHORT}.broker.ccp-it.dktk.dkfz.de
+      BEAM_SECRET: pass123
+      CORS_ORIGIN: http://localhost:5173
+      PROJECT: organoid
+      QUERY_FILTER: eyJwYXlsb2FkIjoiT1JHQU5PSURfREFTSEJPQVJEX0lOVEVSTkFMIn0= # ORGANOID_DASHBOARD_INTERNAL
+      SITES: *sites
+
+  proxy1:
+    image: samply/beam-proxy:main
+    ports:
+      - 4001:4001
+    environment:
+      BIND_ADDR: 0.0.0.0:4001
+      BROKER_URL: https://broker.ccp-it.dktk.dkfz.de
+      PROXY_ID: ${PROXY_ID_SHORT}.broker.ccp-it.dktk.dkfz.de
+      PRIVKEY_FILE: /priv.key.pem
+      ROOTCERT_FILE: /root.crt.pem
+      APP_spot_KEY: pass123
+      APP_prism_KEY: pass123
+    volumes:
+      - ${PRIVKEY_FILE}:/priv.key.pem:ro
+      - ${ROOTCERT_FILE}:/root.crt.pem:ro
+
+volumes:
+  pki:
