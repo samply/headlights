@@ -31,6 +31,8 @@ jobs:
             compose-files: '-f bbmri-sample-locator/compose.local.yaml -f bbmri-sample-locator/compose.local.test.yaml'
           - name: 'ccp-explorer'
             compose-files: '-f ccp-explorer/compose.local.yaml'
+          - name: 'organoid-dashboard'
+            compose-files: '-f organoid-dashboard/compose.local.yaml'
 
     steps:
       - name: Checkout code
