@@ -172,7 +172,7 @@ Projects include a `playwright` container in their `compose.local.yaml` file. Fo
 
 ```yaml
   playwright:
-    image: mcr.microsoft.com/playwright:v1.57.0-noble
+    image: mcr.microsoft.com/playwright:v1.59.1-noble
     network_mode: host
     depends_on:
       test-data-loader:
@@ -183,7 +183,7 @@ Projects include a `playwright` container in their `compose.local.yaml` file. Fo
       - ../playwright.config.ts:/test/playwright.config.ts:ro
       - ./playwright.spec.ts:/test/playwright.spec.ts:ro
     working_dir: /test
-    command: bash -c 'npm i @playwright/test@1.57.0 && npx playwright test'
+    command: bash -c 'npm i @playwright/test@1.59.1 && npx playwright test'
 ```
 
 When writing new tests it is recommended to install Playwright on your machine for a better developer experience. To do so first run `npm install` in the root of the repository and then run `npx playwright install`. The latter will download browser binaries to your computer and install system dependencies. Playwright officially supports Windows, Mac and Ubuntu/Debian. On other Linux distributions it may fail to install system dependencies but it might still work. On Arch Linux for example, Chromium and Firefox tests work despite missing dependencies but Safari does not.
