@@ -18,7 +18,7 @@ services:
     volumes:
       - ./pki-setup.sh:/pki-setup.sh:ro
       - pki:/pki
-    command: sh /pki-setup.sh
+    command: sh -c "sed 's/\r$//' /pki-setup.sh | sh"
 
   broker:
     image: samply/beam-broker:main
