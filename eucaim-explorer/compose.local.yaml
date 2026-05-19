@@ -1,0 +1,56 @@
+include:
+  - ../compose.localbeam.yaml
+
+services:
+  spot:
+    image: samply/rustyspot:latest
+    depends_on:
+      - proxy1
+    ports:
+      - 8055:8055
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    environment:
+      BEAM_PROXY_URL: http://host.docker.internal:4001
+      BEAM_APP_ID: spot.proxy1.broker
+      BEAM_SECRET: pass123
+      CORS_ORIGIN: http://localhost:5173
+      # PRISM_URL: http://host.docker.internal:8056
+      SITES: &sites "proxy2,proxy3"
+
+  focus-chaimeleon:
+    image: samply/focus:develop
+    depends_on:
+      - proxy2
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    environment:
+      BEAM_PROXY_URL: http://host.docker.internal:4002
+      BEAM_APP_ID_LONG: focus.proxy2.broker
+      API_KEY: pass123
+      ENDPOINT_URL: http://responder2:1337
+      ENDPOINT_TYPE: omop
+      PROVIDER: CHAIMELEON
+      PROVIDER_ICON: "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"
+  responder2:
+    image: docker.verbis.dkfz.de/eucaim/responder:chaimeleon
+
+  focus-procanceri:
+    image: samply/focus:develop
+    depends_on:
+      - proxy3
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    environment:
+      BEAM_PROXY_URL: http://host.docker.internal:4003
+      BEAM_APP_ID_LONG: focus.proxy3.broker
+      API_KEY: pass123
+      ENDPOINT_URL: http://responder1:1337
+      ENDPOINT_TYPE: omop
+      no_proxy: dev-proxy1-1, responder1
+      RUST_LOG: debug
+      PROVIDER: ProCancerI
+      PROVIDER_ICON: "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"
+      AUTH_HEADER: "ApiKey abcd123"
+  responder1:
+    image: docker.verbis.dkfz.de/eucaim/responder:procanceri
