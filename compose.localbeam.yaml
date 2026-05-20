@@ -1,6 +1,8 @@
 services:
   vault:
-    image: hashicorp/vault:1.21
+    image: hashicorp/vault:latest
+    cap_add:
+      - IPC_LOCK
     environment:
       VAULT_DEV_ROOT_TOKEN_ID: token123
     healthcheck:
@@ -8,7 +10,10 @@ services:
       start_period: 1m
 
   pki-setup:
-    image: hashicorp/vault:1.21
+    image: hashicorp/vault:latest
+    cap_add:
+      - IPC_LOCK
+    user: root
     depends_on:
       vault:
         condition: service_healthy
