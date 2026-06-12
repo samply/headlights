@@ -2,6 +2,13 @@ include:
   - ../compose.localbeam.yaml
 
 services:
+  lens:
+    image: samply/eucaim-frontend:develop
+    ports:
+      - 3000:3000
+    environment:
+      PUBLIC_SPOT_URL: http://localhost:8055
+
   spot:
     image: samply/rustyspot:latest
     depends_on:
@@ -14,7 +21,7 @@ services:
       BEAM_PROXY_URL: http://host.docker.internal:4001
       BEAM_APP_ID: spot.proxy1.broker
       BEAM_SECRET: pass123
-      CORS_ORIGIN: http://localhost:5173
+      CORS_ORIGIN: http://localhost:3000
       # PRISM_URL: http://host.docker.internal:8056
       SITES: &sites "proxy2,proxy3"
 
