@@ -57,7 +57,7 @@ services:
       OBFUSCATE: no
 
   blaze:
-    image: samply/blaze:0.32
+    image: samply/blaze:1.9
     ports:
       - 8080:8080
     healthcheck:

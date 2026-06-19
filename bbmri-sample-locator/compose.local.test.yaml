@@ -10,5 +10,8 @@ services:
   prism:
     image: samply/prism:develop
 
+  blaze:
+    image: samply/blaze:latest
+
   focus:
     image: samply/focus:develop

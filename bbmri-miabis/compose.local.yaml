@@ -60,7 +60,7 @@ services:
       CQL_FLAVOUR: miabis
 
   blaze-miabis:
-    image: samply/blaze:0.32
+    image: samply/blaze:1.9
     ports:
       - 8080:8080
     healthcheck:
@@ -91,7 +91,7 @@ services:
       OBFUSCATE: no
 
   blaze-bbmri:
-    image: samply/blaze:0.32
+    image: samply/blaze:1.9
     ports:
       - 8081:8080
     healthcheck:
