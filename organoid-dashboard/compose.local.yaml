@@ -56,7 +56,7 @@ services:
       POSTGRES_CONNECTION_STRING: postgresql://postgres:mypassword@host.docker.internal/postgres
 
   blaze:
-    image: samply/blaze:latest
+    image: samply/blaze:1.9
     ports:
       - 8080:8080
     environment:

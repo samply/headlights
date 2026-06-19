@@ -38,7 +38,7 @@ services:
       OBFUSCATE: no
 
   blaze:
-    image: samply/blaze:latest
+    image: samply/blaze:1.9
     ports:
       - 8080:8080
     environment:
