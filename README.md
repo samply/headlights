@@ -137,7 +137,7 @@ This requires that the `compose.local.yaml` file supports running the Focus comp
       OBFUSCATE: no
 ```
 
-The `getenv` script replaces `http://docker.host.internal` with `http://localhost` yielding a list of environment variables that can be used to run Focus on the host.
+The `getenv` script replaces `host.docker.internal` with `localhost`, yielding a list of environment variables that can be used to run Focus on the host.
 
 The second step is to run the Compose file excluding the `focus` service:
 
