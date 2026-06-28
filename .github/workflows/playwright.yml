@@ -33,6 +33,8 @@ jobs:
             compose-files: '-f ccp-explorer/compose.local.yaml'
           - name: 'organoid-dashboard'
             compose-files: '-f organoid-dashboard/compose.local.yaml'
+          - name: 'eucaim-explorer'
+            compose-files: '-f eucaim-explorer/compose.local.yaml'
 
     steps:
       - name: Checkout code
