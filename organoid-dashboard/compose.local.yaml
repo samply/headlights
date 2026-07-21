@@ -76,7 +76,7 @@ services:
     command: sh /blaze-loader.sh
 
   postgres:
-    image: postgres:latest
+    image: postgres:15
     ports:
       - 5432:5432
     environment:
