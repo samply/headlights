@@ -1,0 +1,4 @@
+# Normalize all text files to LF in the repo and on checkout.
+# Shell scripts are bind-mounted into containers and run by busybox sh,
+# which chokes on CRLF ("set: line 1: illegal option -").
+* text=auto eol=lf
