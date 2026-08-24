@@ -18,7 +18,7 @@ services:
       BEAM_PROXY_URL: http://host.docker.internal:4001
       BEAM_APP_ID: spot.${PROXY_ID_SHORT}.broker.ccp-it.dktk.dkfz.de
       BEAM_SECRET: pass123
-      CORS_ORIGIN: http://localhost:3000
+      CORS_ORIGIN: any
       TRANSFORM: LENS
       PROJECT: dktk
       SITES: berlin-test,dresden,essen,frankfurt,freiburg,hannover,mainz,luebeck,muenchen-lmu,muenchen-tum,ulm,wuerzburg,mannheim,hamburg
