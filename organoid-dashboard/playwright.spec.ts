@@ -17,10 +17,14 @@ test('public: result summary', async ({ page }) => {
   await page.getByRole('checkbox', { name: 'Hiermit bestätige ich' }).check();
   await page.getByRole('button', { name: 'Weiter zum Dashboard' }).click();
 
-  await expect(page.getByText("Sites").first()).toContainText('1/');
-  await expect(page.getByText("Projects").first()).toContainText('2');
-  await expect(page.getByText("Patients").first()).toContainText('2');
-  await expect(page.getByText("Organoids").first()).toContainText('5');
+  // Each summary entry is a "<b>Label:</b> value" pair, so the label element itself
+  // holds only the label - assert on its parent, which holds label and value.
+  const summary = (label: string) => page.getByText(label, { exact: true }).locator('..');
+
+  // The dashboard no longer shows a "Projects" count, so it is not asserted here.
+  await expect(summary('Sites:')).toHaveText('Sites: proxy2');
+  await expect(summary('Total Patients:')).toHaveText('Total Patients: 2');
+  await expect(summary('Total Organoids:')).toHaveText('Total Organoids: 5');
 });
 
 test('internal', async ({ page }) => {
