@@ -180,6 +180,26 @@
         "collection": { "collectedDateTime": "2018-11-15" }
       },
       "request": { "method": "PUT", "url": "Specimen/specimen-3" }
+    },
+    {
+      "fullUrl": "urn:uuid:observation-1",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "observation-1",
+        "meta": {
+          "profile": ["https://fhir.bbmri-eric.eu/StructureDefinition/miabis-observation"]
+        },
+        "status": "final",
+        "code": {
+          "coding": [{ "system": "http://loinc.org", "code": "52797-8" }]
+        },
+        "subject": { "reference": "Patient/patient-2" },
+        "valueCodeableConcept": {
+          "coding": [{ "system": "http://hl7.org/fhir/sid/icd-10", "code": "C25" }]
+        },
+        "specimen": { "reference": "Specimen/specimen-3" }
+      },
+      "request": { "method": "PUT", "url": "Observation/observation-1" }
     }
   ]
 }
