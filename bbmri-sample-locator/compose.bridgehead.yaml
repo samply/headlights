@@ -18,7 +18,7 @@ services:
       BEAM_PROXY_URL: http://host.docker.internal:4001
       BEAM_APP_ID: spot.${PROXY_ID_SHORT}.broker.bbmri.samply.de
       BEAM_SECRET: pass123
-      CORS_ORIGIN: http://localhost:3000
+      CORS_ORIGIN: any
       PRISM_URL: http://host.docker.internal:8056
       TRANSFORM: LENS
       PROJECT: bbmri
