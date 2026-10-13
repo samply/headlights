@@ -9,6 +9,7 @@ Headlights implements end-to-end testing of the federated search tools in the [S
 - [Emulating other environments using override files](#emulating-other-environments-using-override-files)
 - [Running individual components from source](#running-individual-components-from-source)
 - [Automated tests using Playwright](#automated-tests-using-playwright)
+- [Parcours](#parcours)
 
 ## Local mode
 
@@ -195,3 +196,18 @@ npx playwright test --ui
 ```
 
 In another terminal run a project in local mode and wait for it to be ready before triggering tests in the Playwright UI.
+
+## Parcours
+
+The Playwright tests above load a query through the URL. A parcours walks the user stories the way a person does: it clicks criteria in the lens catalogue into the query, presses Search and checks the counts, recording a screenshot and an accessibility snapshot of every step. It runs on the shared [parcours-runtime](https://github.com/samply/parcours-runtime) and needs `just`, `podman` (for the runner) and `docker compose` (for the stack).
+
+```bash
+just parcours --list                      # the recipes
+just parcours guide                       # the rules and the A/B procedure
+just parcours run                         # bring up a fresh stack, play every story, take it down
+just parcours ab main .                   # compare the working tree against main
+```
+
+Each project with a parcours has a suite in `dev/parcours/<project>/index.mjs` (currently `bbmri-sample-locator`); `dev/parcours/lens.mjs` holds the verbs every lens-based explorer shares. Results go to `/tmp/headlights-parcours/<suite>/<label>/`.
+
+A parcours stack is the project's `compose.local.yaml` under its own Compose project name. Because headlights stacks bind fixed host ports, only one runs at a time: the stacks of an A/B comparison take turns, and a stack kept after a failed play is removed when the next one needs the ports. Stop any other stack using those ports (e.g. one started from the commands above) before running a parcours.
