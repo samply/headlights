@@ -106,6 +106,18 @@ run_scenario \
     "00000000-0000-0000-0000-000000000007" \
     1
 
+run_scenario \
+    'diagnosis C18 (MIABIS: p2=1 via Condition, BBMRI.de: 0)' \
+    '{"operand":"OR","children":[{"operand":"AND","children":[{"operand":"OR","children":[{"key":"diagnosis","type":"EQUALS","system":"","value":"C18"}]}]}]}' \
+    "00000000-0000-0000-0000-000000000008" \
+    1
+
+run_scenario \
+    'diagnosis C25 (MIABIS: p2=1 via sample-linked Observation, BBMRI.de: 0)' \
+    '{"operand":"OR","children":[{"operand":"AND","children":[{"operand":"OR","children":[{"key":"diagnosis","type":"EQUALS","system":"","value":"C25"}]}]}]}' \
+    "00000000-0000-0000-0000-000000000009" \
+    1
+
 echo ""
 echo "Results: ${PASS} passed, ${FAIL} failed"
 echo ""
