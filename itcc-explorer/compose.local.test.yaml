@@ -1,0 +1,8 @@
+services:
+  # itcc-explorer:
+  #   image: samply/itcc-explorer:develop
+  #   environment:
+  #     PUBLIC_ENVIRONMENT: test
+  
+  spot:
+    image: samply/rustyspot:develop
