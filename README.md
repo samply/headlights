@@ -46,8 +46,8 @@ In bridgehead mode data is fetched from real bridgeheads. This requires that you
 
 ```
 PROXY_ID_SHORT=dev-tim
-PRIVKEY_FILE=/home/tim/beamkeys/broker.ccp-it.dktk.dkfz.de/dev-tim.priv.pem
-ROOTCERT_FILE=/home/tim/beamkeys/broker.ccp-it.dktk.dkfz.de/root.crt.pem
+PRIVKEY_FILE=/home/tim/.beam/pki/broker.ccp-it.dktk.dkfz.de/dev-tim.priv.pem
+ROOTCERT_FILE=/home/tim/.beam/pki/broker.ccp-it.dktk.dkfz.de/root.crt.pem
 ```
 
 Now you are ready to use bridgehead mode. Projects supporting bridgehead mode have a `compose.bridgehead.yaml` file in their project directory. Run a project in bridgehead mode as follows:
