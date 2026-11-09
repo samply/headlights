@@ -1,0 +1,6 @@
+# Every config key a project template may read. Config files given to
+# ./headlights are merged over this; a template sets its own fallbacks with
+# `| default(...)`.
+name: ""
+lens: {}
+focus: {}

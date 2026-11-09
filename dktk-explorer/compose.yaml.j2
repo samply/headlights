@@ -1,0 +1,53 @@
+{#- The lens3 DKTK explorer with one local site: focus and a Blaze holding testdata/. -#}
+{% import "../lib/beam.j2" as beam %}
+services:
+  lens:
+    image: {{ lens.image | default("ghcr.io/samply/lens3:dktk-explorer-main") | tojson }}
+    depends_on:
+      - proxy-central
+    ports:
+      - 127.0.0.1:3000:3000
+    environment:
+      BEAM_PROXY_URL: http://proxy-central:8081
+      BEAM_APP_ID: lens.central.broker
+      BEAM_SECRET: pass123
+      LENS_TEST: "true"
+
+  focus:
+    image: {{ focus.image | default("samply/focus:develop") | tojson }}
+    depends_on:
+      - proxy-test
+      - blaze
+    environment:
+      BEAM_PROXY_URL: http://proxy-test:8081
+      BEAM_APP_ID_LONG: focus.test.broker
+      PROXY_ID: test.broker
+      API_KEY: pass123
+      ENDPOINT_URL: http://blaze:8080/fhir/
+      OBFUSCATE: "no"
+
+  blaze:
+    image: samply/blaze:latest
+    environment:
+      JAVA_TOOL_OPTIONS: -Xmx2g
+    ports:
+      - 127.0.0.1:8090:8080
+
+  testdata:
+    image: curlimages/curl:latest
+    depends_on:
+      - blaze
+    volumes:
+      - ./testdata:/testdata:ro
+    entrypoint: sh -c
+    command:
+      - >-
+        until curl -sf http://blaze:8080/health > /dev/null; do sleep 2; done;
+        for f in /testdata/*.json; do
+        curl -sf -o /dev/null -X POST -H 'Content-Type: application/fhir+json' --data @$$f http://blaze:8080/fhir;
+        done
+
+{{ beam.services({"central": ["lens"], "test": ["focus"]}, ports={"central": "127.0.0.1:8081"}) }}
+
+volumes:
+{{ beam.volumes() }}

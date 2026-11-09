@@ -1,0 +1,97 @@
+{
+  "resourceType": "Bundle",
+  "type": "transaction",
+  "entry": [
+    {
+      "fullUrl": "urn:uuid:7b8b7e33-a0a0-4c31-9c4e-6b6a4c6f0a01",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "test-1",
+        "gender": "female",
+        "birthDate": "1960-05-14"
+      },
+      "request": { "method": "PUT", "url": "Patient/test-1" }
+    },
+    {
+      "resource": {
+        "resourceType": "Condition",
+        "id": "test-1-diagnosis",
+        "subject": { "reference": "Patient/test-1" },
+        "code": {
+          "coding": [
+            {
+              "system": "http://fhir.de/CodeSystem/bfarm/icd-10-gm",
+              "code": "C34.1"
+            }
+          ]
+        },
+        "onsetDateTime": "2020-03-01"
+      },
+      "request": { "method": "PUT", "url": "Condition/test-1-diagnosis" }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "test-1-tnm",
+        "status": "final",
+        "subject": { "reference": "Patient/test-1" },
+        "code": {
+          "coding": [{ "system": "http://loinc.org", "code": "21908-9" }]
+        },
+        "component": [
+          {
+            "code": {
+              "coding": [{ "system": "http://loinc.org", "code": "21905-5" }]
+            },
+            "valueCodeableConcept": {
+              "coding": [
+                {
+                  "system": "http://dktk.dkfz.de/fhir/onco/core/CodeSystem/TNMTCS",
+                  "code": "2"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "request": { "method": "PUT", "url": "Observation/test-1-tnm" }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "test-1-vitalstatus",
+        "status": "final",
+        "subject": { "reference": "Patient/test-1" },
+        "code": {
+          "coding": [{ "system": "http://loinc.org", "code": "75186-7" }]
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://dktk.dkfz.de/fhir/onco/core/CodeSystem/VitalstatusCS",
+              "code": "lebend"
+            }
+          ]
+        }
+      },
+      "request": { "method": "PUT", "url": "Observation/test-1-vitalstatus" }
+    },
+    {
+      "resource": {
+        "resourceType": "Specimen",
+        "id": "test-1-specimen",
+        "subject": { "reference": "Patient/test-1" },
+        "type": {
+          "coding": [
+            {
+              "system": "https://fhir.bbmri.de/CodeSystem/SampleMaterialType",
+              "code": "blood-plasma"
+            }
+          ]
+        },
+        "collection": { "collectedDateTime": "2020-03-15" }
+      },
+      "request": { "method": "PUT", "url": "Specimen/test-1-specimen" }
+    }
+  ]
+}

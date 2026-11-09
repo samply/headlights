@@ -1,0 +1,42 @@
+#!/bin/bash
+# Renders a project's compose.yaml.j2 with the given config files and runs
+# docker compose on the result.
+#
+#   ./headlights [-c config.yaml]... <project> <compose args...>
+#
+#   ./headlights dktk-explorer up
+#   ./headlights -c pr-39.yaml dktk-explorer config    # print the rendered compose file
+set -euo pipefail
+
+usage() {
+  echo "Usage: $0 [-c config.yaml]... <project> <compose args...>" >&2
+  exit 2
+}
+
+root=$(dirname "$(realpath "$0")")
+configs=()
+while getopts c: opt; do
+  case $opt in
+    c) configs+=("$(realpath "$OPTARG")") ;;
+    *) usage ;;
+  esac
+done
+shift $((OPTIND - 1))
+[[ $# -ge 2 ]] || usage
+
+project=$1
+shift
+template=$root/$project/compose.yaml.j2
+if [[ ! -f $template ]]; then
+  echo "No project '$project'. Projects: $(cd "$root" && ls -d */compose.yaml.j2 | cut -d/ -f1 | paste -sd ' ')" >&2
+  exit 1
+fi
+
+data=("$root/defaults.yaml" "${configs[@]}")
+name=$(minijinja-cli --strict -t '{{ name }}' "" "${data[@]}")
+rendered=$(minijinja-cli --strict --autoescape none "$template" "${data[@]}")
+
+exec ${HEADLIGHTS_COMPOSE:-docker compose} \
+  --project-name "${name:-$project}" \
+  --project-directory "$root/$project" \
+  -f - "$@" <<<"$rendered"

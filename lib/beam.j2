@@ -1,0 +1,73 @@
+{#- A local Beam network: Vault, its PKI, a broker and one proxy per entry of `proxies`.
+    `proxies` maps a proxy name to its apps, each app using the key pass123.
+    The proxy for `name` is the service `proxy-<name>` with the Beam id `<name>.broker`.
+    `ports` maps a proxy name to the host address its API is published on. -#}
+
+{% macro services(proxies, ports={}) %}
+  vault:
+    image: hashicorp/vault:latest
+    cap_add:
+      - IPC_LOCK
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: token123
+      # The entrypoint's setcap fails where the container may not set capabilities
+      SKIP_SETCAP: "true"
+    healthcheck:
+      test: VAULT_ADDR=http://localhost:8200 vault status
+      start_period: 1m
+
+  pki-setup:
+    image: hashicorp/vault:latest
+    cap_add:
+      - IPC_LOCK
+    user: root
+    depends_on:
+      vault:
+        condition: service_healthy
+    environment:
+      VAULT_ADDR: http://vault:8200
+      VAULT_TOKEN: token123
+      PROXIES: {{ proxies | list | join(" ") | tojson }}
+    volumes:
+      - ../lib/pki-setup.sh:/pki-setup.sh:ro
+      - pki:/pki
+    command: sh /pki-setup.sh
+
+  broker:
+    image: samply/beam-broker:main
+    depends_on:
+      pki-setup:
+        condition: service_completed_successfully
+    environment:
+      BROKER_URL: http://broker:8080
+      PKI_ADDRESS: http://vault:8200
+      PKI_APIKEY_FILE: /pki/pki.secret
+      ROOTCERT_FILE: /pki/root.crt.pem
+    volumes:
+      - pki:/pki:ro
+{% for proxy, apps in proxies | items %}
+
+  proxy-{{ proxy }}:
+    image: samply/beam-proxy:main
+    depends_on:
+      - broker
+    environment:
+      BROKER_URL: http://broker:8080
+      PROXY_ID: {{ (proxy ~ ".broker") | tojson }}
+      PRIVKEY_FILE: {{ ("/pki/" ~ proxy ~ ".priv.pem") | tojson }}
+      ROOTCERT_FILE: /pki/root.crt.pem
+{%- for app in apps %}
+      APP_{{ app }}_KEY: pass123
+{%- endfor %}
+    volumes:
+      - pki:/pki:ro
+{%- if proxy in ports %}
+    ports:
+      - {{ (ports[proxy] ~ ":8081") | tojson }}
+{%- endif %}
+{%- endfor %}
+{%- endmacro %}
+
+{% macro volumes() %}
+  pki:
+{%- endmacro %}
