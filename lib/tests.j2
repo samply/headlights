@@ -1,0 +1,22 @@
+{#- Tests shared between projects. Each macro renders one service in the `test` profile,
+    which `up` leaves out and `headlights <project> test` runs against the running
+    stack. A test retries its check with tests/retry.sh until the part of the stack it
+    exercises works, and its exit code is the result. Each macro renders the service
+    definition, indented for `services:`. -#}
+{% import "net.j2" as net %}
+
+{#- An empty query through lens' API must come back with counts from `site` -#}
+{% macro lens_query(lens, site, timeout=600) %}
+  test-lens-query:
+    image: curlimages/curl:latest
+    profiles: [test]
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    volumes:
+      - ../lib/tests:/tests:ro
+    entrypoint:
+      - /tests/retry.sh
+      - {{ timeout | string | tojson }}
+      - /tests/lens-query.sh
+      - {{ net.url("test", lens) }}
+      - {{ site | tojson }}
+{%- endmacro %}

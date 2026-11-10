@@ -4,8 +4,10 @@
 #
 #   ./headlights [-c config.yaml]... <project> <compose args...>
 #   ./headlights [-c config.yaml]... <project> env <component>
+#   ./headlights [-c config.yaml]... <project> test
 #
 #   ./headlights dktk-explorer up
+#   ./headlights dktk-explorer test   # run the tests against the running stack
 #   ./headlights -c focus-main.yaml dktk-explorer config   # print the rendered compose file
 #   ./headlights -c lens-on-host.yaml dktk-explorer env lens   # env for running lens yourself
 set -euo pipefail
@@ -13,6 +15,7 @@ set -euo pipefail
 usage() {
   echo "Usage: $0 [-c config.yaml]... <project> <compose args...>" >&2
   echo "       $0 [-c config.yaml]... <project> env <component>" >&2
+  echo "       $0 [-c config.yaml]... <project> test" >&2
   exit 2
 }
 
@@ -57,6 +60,28 @@ if [[ $1 == env ]]; then
     minijinja-cli --strict --no-newline -f json -D "service=$2" \
       -t '{% for key, value in services[service].environment | items %}{{ key }}={{ value }}
 {% endfor %}' "" -
+  exit
+fi
+
+if [[ $1 == test ]]; then
+  [[ $# -eq 1 ]] || usage
+  # Tests are the services in the `test` profile
+  tests=$(comm -13 <(compose config --services | sort) \
+    <(compose --profile test config --services | sort))
+  if [[ -z $tests ]]; then
+    echo "Project '$project' has no tests" >&2
+    exit 1
+  fi
+  failed=()
+  for test in $tests; do
+    echo "== $test"
+    compose --profile test run --rm -T "$test" || failed+=("$test")
+  done
+  if [[ ${#failed[@]} -gt 0 ]]; then
+    echo "Failed: ${failed[*]}" >&2
+    exit 1
+  fi
+  echo "All tests passed"
   exit
 fi
 

@@ -6,7 +6,7 @@
 
 {#- How `from` reaches `to`, as a quoted URL -#}
 {% macro url(from, to) -%}
-{%- set f = components[from] -%}
+{%- set f = components[from] | default({}) -%}
 {%- set t = components[to] -%}
 {%- set path = t.path | default("") -%}
 {%- if t.external | default(false) and t.url | default("") -%}

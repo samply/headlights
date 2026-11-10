@@ -9,6 +9,7 @@
 {#- Imported after `components`, which their macros read -#}
 {% import "../lib/net.j2" as net %}
 {% import "../lib/beam.j2" as beam %}
+{% import "../lib/tests.j2" as tests %}
 services:
   lens:
     image: {{ lens.image | default("ghcr.io/samply/lens3:dktk-explorer-main") | tojson }}
@@ -62,6 +63,8 @@ services:
         done
 
 {{ beam.services({"central": ["lens"], "test": ["focus"]}) }}
+
+{{ tests.lens_query("lens", site="test") }}
 
 volumes:
 {{ beam.volumes() }}

@@ -73,6 +73,21 @@ lens:
 A component that others connect to, like Blaze, is expected on its host port on
 this machine, or at its `url`.
 
+## Tests
+
+`test` runs a project's tests against its running stack:
+
+```bash
+./headlights dktk-explorer up -d
+./headlights dktk-explorer test
+```
+
+A test is a service in the `test` profile, so `up` leaves it out. It reaches
+the stack by service name and its exit code is the result. A test retries its
+check with `lib/tests/retry.sh` until the part of the stack it exercises works,
+so it can start right after `up`. Tests that several projects share are macros
+in `lib/tests.j2`.
+
 ## Container
 
 The image built from `Containerfile` runs one project on its own podman, so
