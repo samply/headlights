@@ -102,7 +102,7 @@ podman run -d --name dktk \
   -v ./config.yaml:/config.yaml:ro \
   -e LLM_API_KEY \
   headlights dktk-explorer
-podman exec dktk headlights dktk-explorer ps
+podman exec dktk headlights dktk-explorer test
 ```
 
 The stack's ports are published on the container's address. The container
