@@ -29,7 +29,7 @@
     command: sh /pki-setup.sh
 
   broker:
-    image: samply/beam-broker:main
+    image: samply/beam-broker:latest
     # Until pki-setup has written the PKI files
     restart: on-failure
     environment:
@@ -42,7 +42,7 @@
 {% for proxy, apps in proxies | items %}
 
   proxy-{{ proxy }}:
-    image: samply/beam-proxy:main
+    image: samply/beam-proxy:latest
     # Until pki-setup has written its key
     restart: on-failure
     {{ net.ports("proxy-" ~ proxy) }}

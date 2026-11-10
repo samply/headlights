@@ -25,6 +25,7 @@ services:
       LLM_MODEL: ${LLM_MODEL:-}
 
   focus:
+    # develop until a focus release understands lens3's query format
     image: {{ focus.image | default("samply/focus:develop") | tojson }}
     {{ net.external("focus") }}
     extra_hosts: ["host.docker.internal:host-gateway"]
