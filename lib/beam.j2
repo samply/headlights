@@ -30,8 +30,9 @@
 
   broker:
     image: samply/beam-broker:latest
-    # Until pki-setup has written the PKI files
-    restart: on-failure
+    depends_on:
+      pki-setup:
+        condition: service_completed_successfully
     environment:
       BROKER_URL: http://broker:8080
       PKI_ADDRESS: http://vault:8200
@@ -43,8 +44,9 @@
 
   proxy-{{ proxy }}:
     image: samply/beam-proxy:latest
-    # Until pki-setup has written its key
-    restart: on-failure
+    depends_on:
+      pki-setup:
+        condition: service_completed_successfully
     {{ net.ports("proxy-" ~ proxy) }}
     environment:
       BROKER_URL: http://broker:8080
