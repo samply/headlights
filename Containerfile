@@ -2,9 +2,18 @@
 # can run side by side without sharing host ports. See README.md.
 FROM quay.io/podman/stable
 
+ARG COMPOSE_VERSION=5.7.0
 ARG MINIJINJA_VERSION=3.1.0
 
-RUN dnf -y install docker-compose && dnf clean all
+# Only the compose client: it drives the container's podman through its Docker API
+RUN set -eu; \
+    name="docker-compose-linux-$(uname -m)"; \
+    url="https://github.com/docker/compose/releases/download/v${COMPOSE_VERSION}/$name"; \
+    cd /tmp; \
+    curl -fsSLO "$url"; \
+    curl -fsSL "$url.sha256" | sha256sum -c; \
+    install "$name" /usr/local/bin/docker-compose; \
+    rm "$name"
 
 RUN set -eu; \
     name="minijinja-cli-$(uname -m)-unknown-linux-musl"; \
