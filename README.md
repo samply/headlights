@@ -34,7 +34,6 @@ files are deep-merged in order, so later files win key by key.
 
 | Key | Default | Effect |
 |---|---|---|
-| `name` | `""`, meaning the project name | The compose project name. It prefixes containers, networks and volumes |
 | `bind` | `127.0.0.1` | The host address ports are published on |
 | `<component>.image` | set by the project | The component's image |
 | `<component>.external` | `false` | Don't start the component (and what belongs to it, like Blaze's test data) |

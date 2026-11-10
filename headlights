@@ -41,12 +41,11 @@ if [[ ! -f $template ]]; then
 fi
 
 data=("$root/defaults.yaml" "${configs[@]}")
-name=$(minijinja-cli --strict -t '{{ name }}' "" "${data[@]}")
 rendered=$(minijinja-cli --strict --autoescape none "$template" "${data[@]}")
 
+# The compose project is named after the project directory, unless COMPOSE_PROJECT_NAME is set
 compose() {
   ${HEADLIGHTS_COMPOSE:-docker compose} \
-    --project-name "${name:-$project}" \
     --project-directory "$root/$project" \
     -f - "$@" <<<"$rendered"
 }
