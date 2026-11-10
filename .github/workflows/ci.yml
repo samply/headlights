@@ -1,0 +1,93 @@
+# Builds the headlights image once, runs every project's tests in it and, on
+# pushes to the branch, publishes that same image to ghcr.io.
+name: CI
+
+on:
+  push:
+    branches: [next]
+  pull_request:
+  workflow_dispatch:
+  # Catches breakage from the floating images the projects run. Scheduled runs
+  # only fire on the default branch, so this waits until next replaces main.
+  # schedule:
+  #   - cron: "0 3 * * *"
+
+env:
+  IMAGE: ghcr.io/samply/headlights
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Build the image
+        run: |
+          podman build -t headlights .
+          podman save -o headlights.tar headlights
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: image
+          path: headlights.tar
+          retention-days: 1
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      # Pulls private images such as lens3's from ghcr.io
+      packages: read
+    strategy:
+      fail-fast: false
+      matrix:
+        project:
+          - dktk-explorer
+    steps:
+      - uses: actions/download-artifact@v6
+        with:
+          name: image
+
+      - name: Load the image
+        run: podman load -i headlights.tar
+
+      - name: Log in to ghcr.io
+        run: |
+          podman login ghcr.io -u "${{ github.actor }}" --password-stdin --authfile auth.json <<<"${{ secrets.GITHUB_TOKEN }}"
+          # The container's podman user has to read it
+          chmod a+r auth.json
+
+      - name: Start the stack
+        run: |
+          podman run -d --name stack \
+            --device /dev/fuse --device /dev/net/tun \
+            --security-opt label=disable --security-opt unmask=ALL \
+            -v ./auth.json:/home/podman/.docker/config.json:ro \
+            headlights "${{ matrix.project }}"
+
+      - name: Test
+        run: podman exec stack headlights "${{ matrix.project }}" test
+
+      - name: Show the stack's logs
+        if: failure()
+        run: |
+          podman exec stack headlights "${{ matrix.project }}" ps -a || true
+          podman logs stack
+
+  push:
+    needs: test
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - uses: actions/download-artifact@v6
+        with:
+          name: image
+
+      - name: Push the tested image
+        run: |
+          podman load -i headlights.tar
+          podman login ghcr.io -u "${{ github.actor }}" --password-stdin <<<"${{ secrets.GITHUB_TOKEN }}"
+          podman push headlights "$IMAGE:${{ github.ref_name }}"
