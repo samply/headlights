@@ -1,42 +1,55 @@
 {#- The lens3 DKTK explorer with one local site: focus and a Blaze holding testdata/. -#}
+{% set components = {
+  "lens": dict(lens, port=3000, host_port=3000),
+  "proxy-central": dict(port=8081, host_port=8081),
+  "proxy-test": dict(port=8081, host_port=8082),
+  "blaze": dict(blaze, port=8080, host_port=8090, path="/fhir/"),
+  "focus": dict(focus),
+} %}
+{#- Imported after `components`, which their macros read -#}
+{% import "../lib/net.j2" as net %}
 {% import "../lib/beam.j2" as beam %}
 services:
   lens:
     image: {{ lens.image | default("ghcr.io/samply/lens3:dktk-explorer-main") | tojson }}
-    depends_on:
-      - proxy-central
-    ports:
-      - 127.0.0.1:3000:3000
+    {{ net.external("lens") }}
+    {{ net.ports("lens") }}
+    extra_hosts: ["host.docker.internal:host-gateway"]
     environment:
-      BEAM_PROXY_URL: http://proxy-central:8081
+      BEAM_PROXY_URL: {{ net.url("lens", "proxy-central") }}
       BEAM_APP_ID: lens.central.broker
       BEAM_SECRET: pass123
       LENS_TEST: "true"
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_BASE_URL: ${LLM_BASE_URL:-}
+      LLM_MODEL: ${LLM_MODEL:-}
 
   focus:
     image: {{ focus.image | default("samply/focus:develop") | tojson }}
-    depends_on:
-      - proxy-test
-      - blaze
+    {{ net.external("focus") }}
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    # Until its proxy is up
+    restart: on-failure
     environment:
-      BEAM_PROXY_URL: http://proxy-test:8081
+      BEAM_PROXY_URL: {{ net.url("focus", "proxy-test") }}
       BEAM_APP_ID_LONG: focus.test.broker
       PROXY_ID: test.broker
       API_KEY: pass123
-      ENDPOINT_URL: http://blaze:8080/fhir/
+      ENDPOINT_URL: {{ net.url("focus", "blaze") }}
       OBFUSCATE: "no"
 
   blaze:
     image: samply/blaze:latest
+    {{ net.external("blaze") }}
+    {{ net.ports("blaze") }}
     environment:
       JAVA_TOOL_OPTIONS: -Xmx2g
-    ports:
-      - 127.0.0.1:8090:8080
 
   testdata:
     image: curlimages/curl:latest
-    depends_on:
-      - blaze
+    # Its shell loop ignores SIGTERM on its own
+    init: true
+    {{ net.external("blaze") }}
     volumes:
       - ./testdata:/testdata:ro
     entrypoint: sh -c
@@ -47,7 +60,7 @@ services:
         curl -sf -o /dev/null -X POST -H 'Content-Type: application/fhir+json' --data @$$f http://blaze:8080/fhir;
         done
 
-{{ beam.services({"central": ["lens"], "test": ["focus"]}, ports={"central": "127.0.0.1:8081"}) }}
+{{ beam.services({"central": ["lens"], "test": ["focus"]}) }}
 
 volumes:
 {{ beam.volumes() }}

@@ -4,6 +4,9 @@ set -e
 
 echo "$VAULT_TOKEN" > /pki/pki.secret
 
+# Waits here rather than on a healthcheck, which podman can't run without systemd
+until vault status > /dev/null 2>&1; do sleep 1; done
+
 # Already set up by an earlier `up` against this Vault
 if vault secrets list | grep -q '^samply_pki/'; then
   exit 0

@@ -1,0 +1,3 @@
+# Config the headlights image applies before /config.yaml: inside the
+# container, ports must be reachable from outside it.
+bind: 0.0.0.0

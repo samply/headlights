@@ -3,18 +3,26 @@
 # docker compose on the result.
 #
 #   ./headlights [-c config.yaml]... <project> <compose args...>
+#   ./headlights [-c config.yaml]... <project> env <component>
 #
 #   ./headlights dktk-explorer up
-#   ./headlights -c pr-39.yaml dktk-explorer config    # print the rendered compose file
+#   ./headlights -c focus-main.yaml dktk-explorer config   # print the rendered compose file
+#   ./headlights -c lens-on-host.yaml dktk-explorer env lens   # env for running lens yourself
 set -euo pipefail
 
 usage() {
   echo "Usage: $0 [-c config.yaml]... <project> <compose args...>" >&2
+  echo "       $0 [-c config.yaml]... <project> env <component>" >&2
   exit 2
 }
 
 root=$(dirname "$(realpath "$0")")
 configs=()
+# HEADLIGHTS_CONFIG: colon-separated config files applied before -c; missing ones are skipped
+IFS=: read -ra preset <<<"${HEADLIGHTS_CONFIG:-}"
+for file in "${preset[@]}"; do
+  [[ -f $file ]] && configs+=("$file")
+done
 while getopts c: opt; do
   case $opt in
     c) configs+=("$(realpath "$OPTARG")") ;;
@@ -36,7 +44,21 @@ data=("$root/defaults.yaml" "${configs[@]}")
 name=$(minijinja-cli --strict -t '{{ name }}' "" "${data[@]}")
 rendered=$(minijinja-cli --strict --autoescape none "$template" "${data[@]}")
 
-exec ${HEADLIGHTS_COMPOSE:-docker compose} \
-  --project-name "${name:-$project}" \
-  --project-directory "$root/$project" \
-  -f - "$@" <<<"$rendered"
+compose() {
+  ${HEADLIGHTS_COMPOSE:-docker compose} \
+    --project-name "${name:-$project}" \
+    --project-directory "$root/$project" \
+    -f - "$@" <<<"$rendered"
+}
+
+if [[ $1 == env ]]; then
+  [[ $# -eq 2 ]] || usage
+  # External components are only in the `external` profile
+  compose --profile external config --format json |
+    minijinja-cli --strict --no-newline -f json -D "service=$2" \
+      -t '{% for key, value in services[service].environment | items %}{{ key }}={{ value }}
+{% endfor %}' "" -
+  exit
+fi
+
+compose "$@"

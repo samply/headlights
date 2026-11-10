@@ -2,5 +2,7 @@
 # ./headlights are merged over this; a template sets its own fallbacks with
 # `| default(...)`.
 name: ""
+bind: 127.0.0.1
 lens: {}
 focus: {}
+blaze: {}

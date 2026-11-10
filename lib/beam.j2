@@ -1,9 +1,10 @@
 {#- A local Beam network: Vault, its PKI, a broker and one proxy per entry of `proxies`.
     `proxies` maps a proxy name to its apps, each app using the key pass123.
-    The proxy for `name` is the service `proxy-<name>` with the Beam id `<name>.broker`.
-    `ports` maps a proxy name to the host address its API is published on. -#}
+    The proxy for `name` is the service `proxy-<name>` with the Beam id `<name>.broker`;
+    it is published if the template's `components` give it a host port. -#}
+{% import "net.j2" as net %}
 
-{% macro services(proxies, ports={}) %}
+{% macro services(proxies) %}
   vault:
     image: hashicorp/vault:latest
     cap_add:
@@ -12,18 +13,12 @@
       VAULT_DEV_ROOT_TOKEN_ID: token123
       # The entrypoint's setcap fails where the container may not set capabilities
       SKIP_SETCAP: "true"
-    healthcheck:
-      test: VAULT_ADDR=http://localhost:8200 vault status
-      start_period: 1m
 
   pki-setup:
     image: hashicorp/vault:latest
     cap_add:
       - IPC_LOCK
     user: root
-    depends_on:
-      vault:
-        condition: service_healthy
     environment:
       VAULT_ADDR: http://vault:8200
       VAULT_TOKEN: token123
@@ -35,9 +30,8 @@
 
   broker:
     image: samply/beam-broker:main
-    depends_on:
-      pki-setup:
-        condition: service_completed_successfully
+    # Until pki-setup has written the PKI files
+    restart: on-failure
     environment:
       BROKER_URL: http://broker:8080
       PKI_ADDRESS: http://vault:8200
@@ -49,8 +43,9 @@
 
   proxy-{{ proxy }}:
     image: samply/beam-proxy:main
-    depends_on:
-      - broker
+    # Until pki-setup has written its key
+    restart: on-failure
+    {{ net.ports("proxy-" ~ proxy) }}
     environment:
       BROKER_URL: http://broker:8080
       PROXY_ID: {{ (proxy ~ ".broker") | tojson }}
@@ -61,10 +56,6 @@
 {%- endfor %}
     volumes:
       - pki:/pki:ro
-{%- if proxy in ports %}
-    ports:
-      - {{ (ports[proxy] ~ ":8081") | tojson }}
-{%- endif %}
 {%- endfor %}
 {%- endmacro %}
 
