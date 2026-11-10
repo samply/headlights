@@ -26,6 +26,9 @@ trap stop TERM INT
 
 headlights "$project" "$@" &
 compose=$!
-# Returns early when a signal arrives; the second wait lets stop() finish
-wait "$compose" || true
-wait
+# Returns early when a signal arrives, and stop() runs before the next line
+status=0
+wait "$compose" || status=$?
+kill "$service" 2>/dev/null || true
+wait || true
+exit "$status"
