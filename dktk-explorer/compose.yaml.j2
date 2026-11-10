@@ -20,7 +20,7 @@ services:
       BEAM_PROXY_URL: {{ net.url("lens", "proxy-central") }}
       BEAM_APP_ID: lens.central.broker
       BEAM_SECRET: pass123
-      LENS_TEST: "true"
+      LENS_ENVIRONMENT: dev
       LLM_API_KEY: ${LLM_API_KEY:-}
       LLM_BASE_URL: ${LLM_BASE_URL:-}
       LLM_MODEL: ${LLM_MODEL:-}
