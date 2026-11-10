@@ -4,6 +4,11 @@
     it is published if the template's `components` give it a host port. -#}
 {% import "net.j2" as net %}
 
+{#- develop until a release has samply/beam#284: the released broker rejects proxies
+    whose certificate serial starts with a high bit, about every second one. Switch
+    back to main then. -#}
+{% set beam_tag = "develop" %}
+
 {% macro services(proxies) %}
   vault:
     image: hashicorp/vault:latest
@@ -29,7 +34,7 @@
     command: sh /pki-setup.sh
 
   broker:
-    image: samply/beam-broker:latest
+    image: samply/beam-broker:{{ beam_tag }}
     depends_on:
       pki-setup:
         condition: service_completed_successfully
@@ -43,7 +48,7 @@
 {% for proxy, apps in proxies | items %}
 
   proxy-{{ proxy }}:
-    image: samply/beam-proxy:latest
+    image: samply/beam-proxy:{{ beam_tag }}
     depends_on:
       pki-setup:
         condition: service_completed_successfully
