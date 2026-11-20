@@ -1,0 +1,5 @@
+{#- An image from the `images` config, whose value is a tag on `repo` or, when it
+    has a / or :, a whole image. -#}
+{% macro ref(repo, value) -%}
+{{ (value if "/" in value or ":" in value else repo ~ ":" ~ value) | tojson }}
+{%- endmacro %}

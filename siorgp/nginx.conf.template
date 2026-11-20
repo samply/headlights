@@ -1,0 +1,9 @@
+# The image's default server, on the address headlights gives it. nginx's
+# entrypoint fills in ${DASHBOARD_LISTEN} and writes this to conf.d/default.conf.
+server {
+    listen ${DASHBOARD_LISTEN};
+    location / {
+        root /usr/share/nginx/html;
+        index index.html;
+    }
+}

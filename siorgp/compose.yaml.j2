@@ -1,0 +1,99 @@
+{#- SIORGP, the organoid platform: the dashboard with a public and an internal spot,
+    querying one site whose focus reads Blaze and the SQL tables fhir2sql derives
+    from it. testdata/ comes from generate-fhir-bundles.py. -#}
+{% import "../lib/net.j2" as net %}
+{% import "../lib/service.j2" as service %}
+{% import "../lib/image.j2" as image %}
+{% import "../lib/beam.j2" as beam %}
+{% import "../lib/blaze.j2" as blaze %}
+{% import "../lib/tests.j2" as tests %}
+services:
+  dashboard:
+    image: {{ image.ref("samply/organoid-dashboard", images.dashboard) }}
+    {{ service.head("dashboard") }}
+    environment:
+      DASHBOARD_LISTEN: {{ net.listen("dashboard") }}
+      SPOT_PUBLIC_URL: http://localhost:{{ services["spot-public"].port }}
+      SPOT_INTERNAL_URL: http://localhost:{{ services["spot-internal"].port }}
+    volumes:
+      - ./nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
+
+  spot-public:
+    image: {{ image.ref("samply/rustyspot", images.spot) }}
+    {{ service.head("spot-public") }}
+    environment:
+      BIND_ADDR: {{ net.listen("spot-public") }}
+      BEAM_PROXY_URL: {{ net.url("proxy-central") }}
+      BEAM_APP_ID: public.central.broker
+      BEAM_SECRET: {{ beam_secret | tojson }}
+      CORS_ORIGIN: any
+      PROJECT: organoid
+      # Only the query the public view sends: base64 of
+      # {"payload":"ORGANOID_DASHBOARD_PUBLIC"}
+      QUERY_FILTER: eyJwYXlsb2FkIjoiT1JHQU5PSURfREFTSEJPQVJEX1BVQkxJQyJ9
+      SITES: test
+
+  spot-internal:
+    image: {{ image.ref("samply/rustyspot", images.spot) }}
+    {{ service.head("spot-internal") }}
+    environment:
+      BIND_ADDR: {{ net.listen("spot-internal") }}
+      BEAM_PROXY_URL: {{ net.url("proxy-central") }}
+      BEAM_APP_ID: internal.central.broker
+      BEAM_SECRET: {{ beam_secret | tojson }}
+      CORS_ORIGIN: any
+      PROJECT: organoid
+      # Only the query the internal view sends: base64 of
+      # {"payload":"ORGANOID_DASHBOARD_INTERNAL"}
+      QUERY_FILTER: eyJwYXlsb2FkIjoiT1JHQU5PSURfREFTSEJPQVJEX0lOVEVSTkFMIn0=
+      SITES: test
+
+  focus:
+    image: {{ image.ref("samply/focus", images.focus) }}
+    {{ service.head("focus") }}
+    # Until its proxy is up
+    restart: on-failure
+    environment:
+      BEAM_PROXY_URL: {{ net.url("proxy-test") }}
+      BEAM_APP_ID_LONG: focus.test.broker
+      API_KEY: {{ beam_secret | tojson }}
+      ENDPOINT_TYPE: blaze-and-sql
+      ENDPOINT_URL: {{ net.url("blaze", "/fhir/") }}
+      POSTGRES_CONNECTION_STRING: {{ ("postgresql://postgres:insecure-postgres-password@" ~ net.host() ~ ":" ~ services.postgres.port ~ "/postgres") | tojson }}
+{{ blaze.server("blaze") }}
+{{ blaze.loader("blaze", source="./testdata") }}
+
+  postgres:
+    image: {{ image.ref("postgres", images.postgres) }}
+    {{ service.head("postgres") }}
+    environment:
+      POSTGRES_PASSWORD: insecure-postgres-password
+      PGPORT: {{ services.postgres.port | string | tojson }}
+    command: ["postgres", "-c", "listen_addresses=*"]
+
+  fhir2sql:
+    image: {{ image.ref("samply/fhir2sql", images.fhir2sql) }}
+    {{ service.head("fhir2sql") }}
+    # Until Blaze and Postgres are up
+    restart: on-failure
+    depends_on:
+      load-blaze:
+        condition: service_completed_successfully
+        # Starts without it when it's omitted
+        required: false
+    environment:
+      BLAZE_BASE_URL: {{ net.url("blaze") }}
+      PG_HOST: {{ net.host() | tojson }}
+      PG_USERNAME: postgres
+      PG_PASSWORD: insecure-postgres-password
+      PG_DBNAME: postgres
+
+{{ beam.network({"central": ["public", "internal"], "test": ["focus"]}) }}
+
+{{ tests.spot_query("spot-public", query='{"payload":"ORGANOID_DASHBOARD_PUBLIC"}') }}
+
+{{ tests.spot_query("spot-internal", query='{"payload":"ORGANOID_DASHBOARD_INTERNAL"}') }}
+
+volumes:
+{{ beam.volumes() }}
+{{- blaze.volumes() }}

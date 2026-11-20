@@ -3,18 +3,22 @@
 # docker compose on the result.
 #
 #   ./headlights [-c config.yaml]... <project> <compose args...>
-#   ./headlights [-c config.yaml]... <project> env <component>
+#   ./headlights [-c config.yaml]... <project> env <service> [command...]
 #   ./headlights [-c config.yaml]... <project> test
 #
-#   ./headlights dktk-explorer up
-#   ./headlights dktk-explorer test   # run the tests against the running stack
-#   ./headlights -c focus-main.yaml dktk-explorer config   # print the rendered compose file
-#   ./headlights -c lens-on-host.yaml dktk-explorer env lens   # env for running lens yourself
+#   ./headlights dktk up
+#   ./headlights dktk test   # run the tests against the running stack
+#   ./headlights -c focus-main.yaml dktk config   # print the rendered compose file
+#   ./headlights -c no-focus.yaml dktk env focus   # print the env for running focus yourself
+#   ./headlights -c no-focus.yaml dktk env focus cargo run   # run focus with it
+#
+# Config: defaults.yaml, then <project>/defaults.yaml, then $HEADLIGHTS_CONFIG and
+# the -c files, each merged over the ones before it.
 set -euo pipefail
 
 usage() {
   echo "Usage: $0 [-c config.yaml]... <project> <compose args...>" >&2
-  echo "       $0 [-c config.yaml]... <project> env <component>" >&2
+  echo "       $0 [-c config.yaml]... <project> env <service> [command...]" >&2
   echo "       $0 [-c config.yaml]... <project> test" >&2
   exit 2
 }
@@ -43,8 +47,16 @@ if [[ ! -f $template ]]; then
   exit 1
 fi
 
-data=("$root/defaults.yaml" "${configs[@]}")
-rendered=$(minijinja-cli --strict --autoescape none "$template" "${data[@]}")
+data=("$root/defaults.yaml")
+[[ -f $root/$project/defaults.yaml ]] && data+=("$root/$project/defaults.yaml")
+data+=("${configs[@]}")
+# Deep-merges the config files in order (minijinja-cli would only merge top-level
+# keys) and renders the template; extra arguments go to minijinja-cli
+render() {
+  yq eval-all '. as $file ireduce ({}; . * $file)' "${data[@]}" |
+    minijinja-cli --strict --autoescape none -f yaml "$@" "$template" -
+}
+rendered=$(render)
 
 # The compose project is named after the project directory, unless COMPOSE_PROJECT_NAME is set
 compose() {
@@ -54,13 +66,23 @@ compose() {
 }
 
 if [[ $1 == env ]]; then
-  [[ $# -eq 2 ]] || usage
-  # External components are only in the `external` profile
-  compose --profile external config --format json |
-    minijinja-cli --strict --no-newline -f json -D "service=$2" \
-      -t '{% for key, value in services[service].environment | items %}{{ key }}={{ value }}
-{% endfor %}' "" -
-  exit
+  [[ $# -ge 2 ]] || usage
+  service=$2
+  shift 2
+  # For a service on the host, which reaches the others at 127.0.0.1
+  rendered=$(render -D on_host:=true)
+  # Services with `omit: true` are only in the `off` profile.
+  vars=$(compose --profile off config --format json |
+    minijinja-cli --strict --no-newline -f json -D "service=$service" \
+      -t '{% for key, value in services[service].environment | items if value is not none %}{{ key }}={{ value }}
+{% endfor %}' "" -)
+  # Without a command, print the environment; with one, run it in it
+  if [[ $# -eq 0 ]]; then
+    printf '%s\n' "$vars"
+    exit
+  fi
+  mapfile -t assignments <<<"$vars"
+  exec env "${assignments[@]}" "$@"
 fi
 
 if [[ $1 == test ]]; then

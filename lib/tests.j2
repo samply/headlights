@@ -4,19 +4,36 @@
     exercises works, and its exit code is the result. Each macro renders the service
     definition, indented for `services:`. -#}
 {% import "net.j2" as net %}
+{% import "service.j2" as service %}
 
-{#- An empty query through lens' API must come back with counts from `site` -#}
-{% macro lens_query(lens, site, timeout=600) %}
+{#- An empty query through lens3's API must come back with counts from every site -#}
+{% macro lens_query(lens, timeout=600) %}
   test-lens-query:
     image: curlimages/curl:latest
-    profiles: [test]
-    extra_hosts: ["host.docker.internal:host-gateway"]
+    {{ service.head("test-lens-query", test=true) }}
     volumes:
       - ../lib/tests:/tests:ro
     entrypoint:
       - /tests/retry.sh
       - {{ timeout | string | tojson }}
       - /tests/lens-query.sh
-      - {{ net.url("test", lens) }}
-      - {{ site | tojson }}
+      - {{ net.url(lens) }}
+{%- endmacro %}
+
+{#- A query through spot must succeed at every site: `query` (the JSON spot passes
+    on), or by default an empty AST query -#}
+{% macro spot_query(spot, query=none, timeout=600) %}
+  test-{{ spot }}-query:
+    image: curlimages/curl:latest
+    {{ service.head("test-" ~ spot ~ "-query", test=true) }}
+    volumes:
+      - ../lib/tests:/tests:ro
+    entrypoint:
+      - /tests/retry.sh
+      - {{ timeout | string | tojson }}
+      - /tests/spot-query.sh
+      - {{ net.url(spot) }}
+{%- if query %}
+      - {{ query | tojson }}
+{%- endif %}
 {%- endmacro %}

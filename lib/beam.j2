@@ -1,32 +1,33 @@
-{#- A local Beam network: Vault, its PKI, a broker and one proxy per entry of `proxies`.
-    `proxies` maps a proxy name to its apps, each app using the key pass123.
-    The proxy for `name` is the service `proxy-<name>` with the Beam id `<name>.broker`;
-    it is published if the template's `components` give it a host port. -#}
+{#- A local Beam network: Vault, its PKI, a broker and one proxy per entry of
+    `proxies`. `proxies` maps a proxy name to its apps, each app using the key
+    `beam_secret`. The proxy for `name` is the service `proxy-<name>` with the Beam
+    id `<name>.broker`. The project's services give `vault`, `broker` and each
+    proxy a port. -#}
 {% import "net.j2" as net %}
+{% import "service.j2" as service %}
+{% import "image.j2" as image %}
 
-{#- develop until a release has samply/beam#284: the released broker rejects proxies
-    whose certificate serial starts with a high bit, about every second one. Switch
-    back to main then. -#}
-{% set beam_tag = "develop" %}
-
-{% macro services(proxies) %}
+{% macro network(proxies) %}
   vault:
-    image: hashicorp/vault:latest
+    image: {{ image.ref("hashicorp/vault", images.vault) }}
+    {{ service.head("vault") }}
     cap_add:
       - IPC_LOCK
     environment:
-      VAULT_DEV_ROOT_TOKEN_ID: token123
+      VAULT_DEV_ROOT_TOKEN_ID: insecure-vault-token
+      VAULT_DEV_LISTEN_ADDRESS: {{ net.listen("vault") }}
       # The entrypoint's setcap fails where the container may not set capabilities
       SKIP_SETCAP: "true"
 
   pki-setup:
-    image: hashicorp/vault:latest
+    image: {{ image.ref("hashicorp/vault", images.vault) }}
+    {{ service.head("pki-setup") }}
     cap_add:
       - IPC_LOCK
     user: root
     environment:
-      VAULT_ADDR: http://vault:8200
-      VAULT_TOKEN: token123
+      VAULT_ADDR: {{ net.url("vault") }}
+      VAULT_TOKEN: insecure-vault-token
       PROXIES: {{ proxies | list | join(" ") | tojson }}
     volumes:
       - ../lib/pki-setup.sh:/pki-setup.sh:ro
@@ -34,13 +35,15 @@
     command: sh /pki-setup.sh
 
   broker:
-    image: samply/beam-broker:{{ beam_tag }}
+    image: {{ image.ref("samply/beam-broker", images.beam) }}
+    {{ service.head("broker") }}
     depends_on:
       pki-setup:
         condition: service_completed_successfully
     environment:
-      BROKER_URL: http://broker:8080
-      PKI_ADDRESS: http://vault:8200
+      BIND_ADDR: {{ net.listen("broker") }}
+      BROKER_URL: {{ ("http://broker:" ~ services.broker.port) | tojson }}
+      PKI_ADDRESS: {{ net.url("vault") }}
       PKI_APIKEY_FILE: /pki/pki.secret
       ROOTCERT_FILE: /pki/root.crt.pem
     volumes:
@@ -48,18 +51,20 @@
 {% for proxy, apps in proxies | items %}
 
   proxy-{{ proxy }}:
-    image: samply/beam-proxy:{{ beam_tag }}
+    image: {{ image.ref("samply/beam-proxy", images.beam) }}
+    {{ service.head("proxy-" ~ proxy) }}
     depends_on:
       pki-setup:
         condition: service_completed_successfully
-    {{ net.ports("proxy-" ~ proxy) }}
     environment:
-      BROKER_URL: http://broker:8080
+      BIND_ADDR: {{ net.listen("proxy-" ~ proxy) }}
+      # Not net.url: Beam takes the broker id from this host name
+      BROKER_URL: {{ ("http://broker:" ~ services.broker.port) | tojson }}
       PROXY_ID: {{ (proxy ~ ".broker") | tojson }}
       PRIVKEY_FILE: {{ ("/pki/" ~ proxy ~ ".priv.pem") | tojson }}
       ROOTCERT_FILE: /pki/root.crt.pem
 {%- for app in apps %}
-      APP_{{ app }}_KEY: pass123
+      APP_{{ app }}_KEY: {{ beam_secret | tojson }}
 {%- endfor %}
     volumes:
       - pki:/pki:ro

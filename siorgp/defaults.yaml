@@ -1,0 +1,15 @@
+images:
+  dashboard: main
+  postgres: 15.13-alpine
+  fhir2sql: main
+
+services:
+  dashboard:
+    port: 28002
+  spot-public:
+    port: 28050
+  spot-internal:
+    port: 28051
+  postgres:
+    # fhir2sql only connects to 5432
+    port: 5432

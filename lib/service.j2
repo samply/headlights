@@ -1,0 +1,16 @@
+{#- The lines every service starts with: reaching the host (Docker on Linux needs
+    this), publishing its port, and its profile: `off` with `omit: true`, which
+    keeps it out of `up` but in the file for `headlights env`, otherwise `test` for
+    a test, which `headlights test` runs. Indented for a service's keys. -#}
+{% macro head(name, test=false) -%}
+{%- set config = services[name] | default({}) -%}
+extra_hosts: ["host.docker.internal:host-gateway"]
+{%- if config.port is defined %}
+    ports: [{{ (config.port ~ ":" ~ config.port) | tojson }}]
+{%- endif %}
+{%- if config.omit | default(false) %}
+    profiles: ["off"]
+{%- elif test %}
+    profiles: ["test"]
+{%- endif %}
+{%- endmacro %}

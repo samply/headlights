@@ -1,0 +1,69 @@
+{#- DKTK: the lens3 explorer and the lens2 DKTK explorer, both querying one local
+    site, focus and a Blaze holding testdata/. -#}
+{% import "../lib/net.j2" as net %}
+{% import "../lib/service.j2" as service %}
+{% import "../lib/image.j2" as image %}
+{% import "../lib/beam.j2" as beam %}
+{% import "../lib/blaze.j2" as blaze %}
+{% import "../lib/tests.j2" as tests %}
+services:
+  lens3:
+    image: {{ image.ref("ghcr.io/samply/lens3", "dktk-explorer-" ~ images.lens3) }}
+    {{ service.head("lens3") }}
+    environment:
+      HOSTNAME: 0.0.0.0
+      PORT: {{ services.lens3.port | string | tojson }}
+      BEAM_PROXY_URL: {{ net.url("proxy-central") }}
+      BEAM_APP_ID: lens.central.broker
+      BEAM_SECRET: {{ beam_secret | tojson }}
+      SITES: dev
+      LENS_DEV_MENU: "true"
+      LLM_API_KEY:
+      LLM_BASE_URL:
+      LLM_MODEL:
+
+  lens2:
+    image: {{ image.ref("samply/ccp-explorer", images.lens2) }}
+    {{ service.head("lens2") }}
+    environment:
+      HOST: 0.0.0.0
+      PORT: {{ services.lens2.port | string | tojson }}
+      PUBLIC_SPOT_URL: http://localhost:{{ services.spot.port }}
+
+  spot:
+    image: {{ image.ref("samply/rustyspot", images.spot) }}
+    {{ service.head("spot") }}
+    environment:
+      BIND_ADDR: {{ net.listen("spot") }}
+      BEAM_PROXY_URL: {{ net.url("proxy-central") }}
+      BEAM_APP_ID: spot.central.broker
+      BEAM_SECRET: {{ beam_secret | tojson }}
+      CORS_ORIGIN: any
+      TRANSFORM: LENS
+      PROJECT: dktk
+      SITES: test
+
+  focus:
+    image: {{ image.ref("samply/focus", images.focus) }}
+    {{ service.head("focus") }}
+    # Until its proxy is up
+    restart: on-failure
+    environment:
+      BEAM_PROXY_URL: {{ net.url("proxy-test") }}
+      BEAM_APP_ID_LONG: focus.test.broker
+      PROXY_ID: test.broker
+      API_KEY: {{ beam_secret | tojson }}
+      ENDPOINT_URL: {{ net.url("blaze", "/fhir/") }}
+      OBFUSCATE: "no"
+{{ blaze.server("blaze") }}
+{{ blaze.loader("blaze", source="./testdata") }}
+
+{{ beam.network({"central": ["lens", "spot"], "test": ["focus"]}) }}
+
+{{ tests.lens_query("lens3") }}
+
+{{ tests.spot_query("spot") }}
+
+volumes:
+{{ beam.volumes() }}
+{{- blaze.volumes() }}

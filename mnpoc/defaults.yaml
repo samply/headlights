@@ -1,0 +1,5 @@
+services:
+  # Not part of the stack yet: run YAASB yourself with the redcap-lens logic
+  # config on this port
+  yaasb:
+    port: 28300

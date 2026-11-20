@@ -1,0 +1,14 @@
+{#- MNPoC: the lens3 explorer, which queries YAASB directly instead of sites over
+    Beam. YAASB itself is not part of the stack yet. -#}
+{% import "../lib/net.j2" as net %}
+{% import "../lib/service.j2" as service %}
+{% import "../lib/image.j2" as image %}
+services:
+  lens3:
+    image: {{ image.ref("ghcr.io/samply/lens3", "mnpoc-explorer-" ~ images.lens3) }}
+    {{ service.head("lens3") }}
+    environment:
+      HOSTNAME: 0.0.0.0
+      PORT: {{ services.lens3.port | string | tojson }}
+      QUERY_BACKEND_URL: {{ net.url("yaasb", "/query/lens3/exec") }}
+      LENS_DEV_MENU: "true"
