@@ -37,8 +37,6 @@ tags like `main` or `latest`, so pull them on each start:
 
 ```bash
 ./headlights dktk up --pull always      # start, with the newest images
-./headlights dktk config                # show the resulting compose file
-./headlights dktk down -v               # stop and delete all data
 ```
 
 With Claude, you can use headlights through the `/headlights` skill.
@@ -74,23 +72,18 @@ To run a service yourself, e.g. focus from its repo, leave it out of the stack
 with `omit: true`:
 
 ```yaml
-# /tmp/no-focus.yaml
+# no-focus.yaml
 services:
   focus:
     omit: true
 ```
 
-Start the stack with that config in one terminal:
+Then start the stack with that config, and run focus with
+`env`, which gives it the environment it needs to reach the stack:
 
 ```bash
-./headlights -c /tmp/no-focus.yaml dktk up --pull always
-```
-
-Then, in another terminal in the focus repo, `env` runs focus with the
-environment it needs to reach the stack:
-
-```bash
-../headlights/headlights -c /tmp/no-focus.yaml dktk env focus cargo run
+../headlights/headlights -c no-focus.yaml dktk up -d --pull always
+../headlights/headlights -c no-focus.yaml dktk env focus cargo run
 ```
 
 Without a command, `env` prints that environment instead, e.g. for a `.env`
