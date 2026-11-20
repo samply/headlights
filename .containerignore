@@ -1,2 +1,4 @@
 .git
 **/.env
+.claude
+.vscode

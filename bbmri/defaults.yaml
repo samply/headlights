@@ -1,0 +1,19 @@
+images:
+  lens2: latest
+  prism: main
+
+services:
+  prism:
+    port: 28060
+  proxy-bbmri:
+    port: 28082
+  proxy-miabis:
+    port: 28083
+  proxy-generated:
+    port: 28084
+  blaze-bbmri:
+    port: 28090
+  blaze-miabis:
+    port: 28091
+  blaze-generated:
+    port: 28092

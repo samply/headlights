@@ -1,0 +1,50 @@
+{#- A Blaze and the test data for it. Test data is FHIR bundles (*.json, *.xml) in
+    the project's testdata/ directory, or from a producer, a one-shot service that
+    writes them to a volume of its own name and exits. The loader uploads them to
+    the Blaze, see testdata/load.sh. -#}
+{% import "net.j2" as net %}
+{% import "service.j2" as service %}
+{% import "image.j2" as image %}
+
+{#- The data volumes of the Blazes rendered so far, for volumes() -#}
+{% set rendered = namespace(volumes=[]) %}
+
+{% macro server(name) %}
+{%- set rendered.volumes = rendered.volumes + [name ~ "-data"] %}
+  {{ name }}:
+    image: {{ image.ref("samply/blaze", images.blaze) }}
+    {{ service.head(name) }}
+    environment:
+      SERVER_PORT: {{ services[name].port | string | tojson }}
+      # The loader deletes resources in batches when the test data changes
+      ENFORCE_REFERENTIAL_INTEGRITY: "false"
+      JAVA_TOOL_OPTIONS: -Xmx2g
+    volumes:
+      - {{ (name ~ "-data:/app/data") | tojson }}
+{%- endmacro %}
+
+{#- The data volumes of all Blazes, for the project's `volumes:`. Call it after
+    every server(). -#}
+{% macro volumes() %}
+{%- for volume in rendered.volumes %}
+  {{ volume }}:
+{%- endfor %}
+{%- endmacro %}
+
+{#- Loads test data into the Blaze `name` from `source`: a path starting with ./ is
+    a directory in the project, anything else a volume, filled by the producer of
+    the same name -#}
+{% macro loader(name, source) %}
+  load-{{ name }}:
+    image: alpine:latest
+    {{ service.head("load-" ~ name) }}
+    {%- if source is not startingwith("./") %}
+    depends_on:
+      {{ source }}:
+        condition: service_completed_successfully
+    {%- endif %}
+    volumes:
+      - ../lib/testdata/load.sh:/load.sh:ro
+      - {{ (source ~ ":/testdata:ro") | tojson }}
+    entrypoint: ["sh", "-c", "apk add -q --no-cache curl jq && sh /load.sh \"$$0\" /testdata", {{ net.url(name, "/fhir") }}]
+{%- endmacro %}

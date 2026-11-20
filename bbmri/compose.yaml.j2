@@ -1,0 +1,94 @@
+{#- BBMRI: the lens2 Sample Locator with spot and prism, querying three sites:
+    bbmri and miabis with fixed test patients in the BBMRI.de and the
+    MIABIS-on-FHIR format (focus with CQL_FLAVOUR=miabis), and generated with
+    data from bbmri-fhir-gen. -#}
+{% import "../lib/net.j2" as net %}
+{% import "../lib/service.j2" as service %}
+{% import "../lib/image.j2" as image %}
+{% import "../lib/beam.j2" as beam %}
+{% import "../lib/blaze.j2" as blaze %}
+{% import "../lib/tests.j2" as tests %}
+{% set sites = "bbmri,miabis,generated" %}
+services:
+  lens2:
+    image: {{ image.ref("samply/bbmri-sample-locator", images.lens2) }}
+    {{ service.head("lens2") }}
+    environment:
+      HOST: 0.0.0.0
+      PORT: {{ services.lens2.port | string | tojson }}
+      PUBLIC_SPOT_URL: http://localhost:{{ services.spot.port }}
+
+  spot:
+    image: {{ image.ref("samply/rustyspot", images.spot) }}
+    {{ service.head("spot") }}
+    environment:
+      BIND_ADDR: {{ net.listen("spot") }}
+      BEAM_PROXY_URL: {{ net.url("proxy-central") }}
+      BEAM_APP_ID: spot.central.broker
+      BEAM_SECRET: {{ beam_secret | tojson }}
+      CORS_ORIGIN: any
+      PRISM_URL: {{ net.url("prism") }}
+      TRANSFORM: LENS
+      PROJECT: bbmri
+      SITES: {{ sites | tojson }}
+
+  prism:
+    image: {{ image.ref("samply/prism", images.prism) }}
+    {{ service.head("prism") }}
+    # Until its proxy is up
+    restart: on-failure
+    environment:
+      BIND_ADDR: {{ net.listen("prism") }}
+      BEAM_PROXY_URL: {{ net.url("proxy-central") }}
+      BEAM_APP_ID_LONG: prism.central.broker
+      API_KEY: {{ beam_secret | tojson }}
+      CORS_ORIGIN: any
+      PROJECT: bbmri
+      SITES: {{ sites | tojson }}
+{% for site, flavour in [("bbmri", none), ("miabis", "miabis"), ("generated", none)] %}
+
+  focus-{{ site }}:
+    image: {{ image.ref("samply/focus", images.focus) }}
+    {{ service.head("focus-" ~ site) }}
+    # Until its proxy is up
+    restart: on-failure
+    environment:
+      BEAM_PROXY_URL: {{ net.url("proxy-" ~ site) }}
+      BEAM_APP_ID_LONG: {{ ("focus." ~ site ~ ".broker") | tojson }}
+      API_KEY: {{ beam_secret | tojson }}
+      ENDPOINT_URL: {{ net.url("blaze-" ~ site, "/fhir/") }}
+      OBFUSCATE: "no"
+{%- if flavour %}
+      CQL_FLAVOUR: {{ flavour }}
+{%- endif %}
+{{ blaze.server("blaze-" ~ site) }}
+{%- endfor %}
+
+  testdata-generated:
+    image: alpine:latest
+    {{ service.head("testdata-generated") }}
+    volumes:
+      - ./testdata.sh:/testdata.sh:ro
+      - testdata-generated:/testdata
+    command: ["sh", "/testdata.sh"]
+{{ blaze.loader("blaze-bbmri", source="./testdata/bbmri") }}
+{{ blaze.loader("blaze-miabis", source="./testdata/miabis") }}
+{{ blaze.loader("blaze-generated", source="testdata-generated") }}
+
+{{ beam.network({"central": ["spot", "prism"], "bbmri": ["focus"], "miabis": ["focus"], "generated": ["focus"]}) }}
+
+{{ tests.spot_query("spot") }}
+
+  # Exact counts from the bbmri and miabis sites
+  test-counts:
+    image: alpine:latest
+    {{ service.head("test-counts", test=true) }}
+    volumes:
+      - ../lib/tests:/tests:ro
+      - ./counts-test.sh:/counts-test.sh:ro
+    entrypoint: ["sh", "-c", "apk add -q --no-cache bash curl jq && /tests/retry.sh 600 bash /counts-test.sh \"$$0\"", {{ net.url("spot") }}]
+
+volumes:
+{{ beam.volumes() }}
+{{- blaze.volumes() }}
+  testdata-generated:

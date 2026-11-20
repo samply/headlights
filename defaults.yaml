@@ -1,7 +1,37 @@
-# Every config key a project template may read. Config files given to
-# ./headlights are merged over this; a template sets its own fallbacks with
-# `| default(...)`.
-bind: 127.0.0.1
-lens: {}
-focus: {}
-blaze: {}
+# Config every project starts from. Then come the project's own
+# <project>/defaults.yaml and the files given with -c, each merged over the
+# ones before it.
+
+# The key every Beam app uses with its proxy
+beam_secret: insecure-beam-secret
+
+# Images of the services several projects share.
+images:
+  lens3: main
+  spot: latest
+  vault: latest
+  # develop until a release has samply/beam#284: the released broker rejects
+  # proxies whose certificate serial starts with a high bit, about every second
+  # one. Switch back to main then.
+  beam: develop
+  focus: main
+  blaze: "1.8"
+
+# Ports of the services several projects share.
+services:
+  lens3:
+    port: 28000
+  lens2:
+    port: 28001
+  spot:
+    port: 28050
+  broker:
+    port: 28080
+  proxy-central:
+    port: 28081
+  proxy-test:
+    port: 28082
+  blaze:
+    port: 28090
+  vault:
+    port: 28200

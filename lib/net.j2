@@ -1,36 +1,21 @@
-{#- Wiring between a project's components. The template sets `components`, mapping a
-    component (a service name) to its config merged with its `port` in the compose
-    network, its `host_port` on the host and an optional URL `path`. A component with
-    `external` set is not started; others reach it at its `url`, by default on this
-    machine at its host port. Each macro renders one line. -#}
+{#- Services reach each other through the host, at host.docker.internal:<port>, so it
+    makes no difference whether a service runs in a container or, with
+    `omit: true`, on the host itself. Each publishes its port 1:1 on every
+    interface. A service's config is `services[<name>]`. -#}
 
-{#- How `from` reaches `to`, as a quoted URL -#}
-{% macro url(from, to) -%}
-{%- set f = components[from] | default({}) -%}
-{%- set t = components[to] -%}
-{%- set path = t.path | default("") -%}
-{%- if t.external | default(false) and t.url | default("") -%}
-{{ t.url | tojson }}
-{%- elif f.external | default(false) -%}
-{{ ("http://localhost:" ~ t.host_port ~ path) | tojson }}
-{%- elif t.external | default(false) -%}
-{{ ("http://host.docker.internal:" ~ t.host_port ~ path) | tojson }}
-{%- else -%}
-{{ ("http://" ~ to ~ ":" ~ t.port ~ path) | tojson }}
-{%- endif -%}
+{#- Where services are reached: through the host from a container, or at
+    127.0.0.1 when `headlights env` renders with on_host=true for a service on the
+    host itself -#}
+{% macro host() -%}
+{{ "127.0.0.1" if on_host | default(false) else "host.docker.internal" }}
 {%- endmacro %}
 
-{#- Publishes the component's port on `bind`, if it has a host port -#}
-{% macro ports(name) -%}
-{%- set c = components[name] -%}
-{%- if c.host_port is defined -%}
-ports: [{{ (bind ~ ":" ~ c.host_port ~ ":" ~ c.port) | tojson }}]
-{%- endif -%}
+{#- Where `name` is reached, as a quoted URL -#}
+{% macro url(name, path="") -%}
+{{ ("http://" ~ host() ~ ":" ~ services[name].port ~ path) | tojson }}
 {%- endmacro %}
 
-{#- Keeps an external component out of `up`, but in the file for `headlights env` -#}
-{% macro external(name) -%}
-{%- if components[name].external | default(false) -%}
-profiles: [external]
-{%- endif -%}
+{#- The address `name` listens on, as a quoted string -#}
+{% macro listen(name) -%}
+{{ ("0.0.0.0:" ~ services[name].port) | tojson }}
 {%- endmacro %}

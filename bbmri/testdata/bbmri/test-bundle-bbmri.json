@@ -1,0 +1,114 @@
+{
+  "resourceType": "Bundle",
+  "type": "transaction",
+  "entry": [
+    {
+      "fullUrl": "urn:uuid:bbmri-patient-1",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "bbmri-patient-1",
+        "gender": "female",
+        "birthDate": "1972-05-10"
+      },
+      "request": { "method": "PUT", "url": "Patient/bbmri-patient-1" }
+    },
+    {
+      "fullUrl": "urn:uuid:bbmri-patient-2",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "bbmri-patient-2",
+        "gender": "male",
+        "birthDate": "1968-11-03"
+      },
+      "request": { "method": "PUT", "url": "Patient/bbmri-patient-2" }
+    },
+    {
+      "fullUrl": "urn:uuid:bbmri-condition-1",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "bbmri-condition-1",
+        "subject": { "reference": "Patient/bbmri-patient-1" },
+        "code": {
+          "coding": [
+            { "system": "http://hl7.org/fhir/sid/icd-10", "code": "C50" }
+          ]
+        }
+      },
+      "request": { "method": "PUT", "url": "Condition/bbmri-condition-1" }
+    },
+    {
+      "fullUrl": "urn:uuid:bbmri-condition-2",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "bbmri-condition-2",
+        "subject": { "reference": "Patient/bbmri-patient-2" },
+        "code": {
+          "coding": [
+            { "system": "http://hl7.org/fhir/sid/icd-10", "code": "C61" }
+          ]
+        }
+      },
+      "request": { "method": "PUT", "url": "Condition/bbmri-condition-2" }
+    },
+    {
+      "fullUrl": "urn:uuid:bbmri-specimen-1",
+      "resource": {
+        "resourceType": "Specimen",
+        "id": "bbmri-specimen-1",
+        "subject": { "reference": "Patient/bbmri-patient-1" },
+        "type": {
+          "coding": [
+            {
+              "system": "https://fhir.bbmri.de/CodeSystem/SampleMaterialType",
+              "code": "blood-plasma"
+            }
+          ]
+        },
+        "extension": [
+          {
+            "url": "https://fhir.bbmri.de/StructureDefinition/StorageTemperature",
+            "valueCodeableConcept": {
+              "coding": [
+                {
+                  "system": "https://fhir.bbmri.de/CodeSystem/StorageTemperature",
+                  "code": "temperatureLN"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "request": { "method": "PUT", "url": "Specimen/bbmri-specimen-1" }
+    },
+    {
+      "fullUrl": "urn:uuid:bbmri-specimen-2",
+      "resource": {
+        "resourceType": "Specimen",
+        "id": "bbmri-specimen-2",
+        "subject": { "reference": "Patient/bbmri-patient-2" },
+        "type": {
+          "coding": [
+            {
+              "system": "https://fhir.bbmri.de/CodeSystem/SampleMaterialType",
+              "code": "whole-blood"
+            }
+          ]
+        },
+        "extension": [
+          {
+            "url": "https://fhir.bbmri.de/StructureDefinition/StorageTemperature",
+            "valueCodeableConcept": {
+              "coding": [
+                {
+                  "system": "https://fhir.bbmri.de/CodeSystem/StorageTemperature",
+                  "code": "temperatureRoom"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "request": { "method": "PUT", "url": "Specimen/bbmri-specimen-2" }
+    }
+  ]
+}

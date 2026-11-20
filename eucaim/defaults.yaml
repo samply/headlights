@@ -1,0 +1,15 @@
+images:
+  # develop as in the classic headlights, for its OMOP endpoint
+  focus: develop
+  lens2: latest
+
+services:
+  proxy-chaimeleon:
+    port: 28082
+  proxy-procanceri:
+    port: 28083
+  responder-chaimeleon:
+    port: 28330
+  responder-procanceri:
+    port: 28331
+

@@ -4,13 +4,12 @@ name: CI
 
 on:
   push:
-    branches: [next]
+    branches: [main]
   pull_request:
   workflow_dispatch:
-  # Catches breakage from the floating images the projects run. Scheduled runs
-  # only fire on the default branch, so this waits until next replaces main.
-  # schedule:
-  #   - cron: "0 3 * * *"
+  # Catches breakage from the floating images the projects run
+  schedule:
+    - cron: "0 3 * * *"
 
 env:
   IMAGE: ghcr.io/samply/headlights
@@ -43,7 +42,14 @@ jobs:
       fail-fast: false
       matrix:
         project:
-          - dktk-explorer
+          - dktk
+          - bbmri
+          - eucaim
+          - siorgp
+          # Their test data and backend are private (docker.verbis.dkfz.de and
+          # git.verbis.dkfz.de); enable once CI can pull them.
+          # - dhki
+          # - mnpoc
     steps:
       - uses: actions/download-artifact@v6
         with:
