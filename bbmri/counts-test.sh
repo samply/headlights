@@ -10,17 +10,10 @@ SPOT_URL="$1"
 PASS=0
 FAIL=0
 
-wait_for_spot() {
-  echo -n "Waiting for Spot..."
-  until curl -sf -o /dev/null "${SPOT_URL}/health" 2>/dev/null; do
-    printf '.'; sleep 2
-  done
-  echo " ready."
-}
-
 query_total() {
   local ast_obj="$1"
-  local id="$2"
+  # Beam takes each task id once, so every query, and every retry, needs its own
+  local id; id=$(cat /proc/sys/kernel/random/uuid)
   local payload query
   payload=$(jq -cn --arg id "${id}" --argjson ast "${ast_obj}" '{"ast":$ast,"id":$id}' | base64 | tr -d '\n')
   query=$(jq -cn --arg p "${payload}" '{"lang":"ast","payload":$p}' | base64 | tr -d '\n')
@@ -39,10 +32,9 @@ query_total() {
 run_scenario() {
   local desc="$1"
   local ast_obj="$2"
-  local id="$3"
-  local expected="$4"
+  local expected="$3"
 
-  local actual; actual=$(query_total "${ast_obj}" "${id}" || echo "")
+  local actual; actual=$(query_total "${ast_obj}" || echo "")
 
   if [[ "${actual}" == "${expected}" ]]; then
     printf "  ok    %s  (total=%s)\n" "${desc}" "${actual}"
@@ -53,7 +45,6 @@ run_scenario() {
   fi
 }
 
-wait_for_spot
 echo ""
 
 echo "=== Mixed-node scenarios (MIABIS + BBMRI.de, total across both sites) ==="
@@ -62,31 +53,26 @@ echo ""
 run_scenario \
   "empty AST — all patients (2 MIABIS + 2 BBMRI.de)" \
   '{"operand":"AND","children":[]}' \
-  "00000000-0000-0000-0000-000000000000" \
   4
 
 run_scenario \
   'storage_temperature = temperatureRoom  (MIABIS RT: p1=1, BBMRI.de Room: bbmri-p2=1)' \
   '{"operand":"OR","children":[{"operand":"AND","children":[{"operand":"OR","children":[{"key":"storage_temperature","type":"EQUALS","system":"","value":"temperatureRoom"}]}]}]}' \
-  "00000000-0000-0000-0000-000000000001" \
   2
 
 run_scenario \
   'storage_temperature = temperatureLN   (MIABIS LN: p1+p2=2, BBMRI.de LN: bbmri-p1=1)' \
   '{"operand":"OR","children":[{"operand":"AND","children":[{"operand":"OR","children":[{"key":"storage_temperature","type":"EQUALS","system":"","value":"temperatureLN"}]}]}]}' \
-  "00000000-0000-0000-0000-000000000002" \
   3
 
 run_scenario \
   'sample_kind = blood-plasma            (MIABIS Plasma: p1=1, BBMRI.de blood-plasma: bbmri-p1=1)' \
   '{"operand":"OR","children":[{"operand":"AND","children":[{"operand":"OR","children":[{"key":"sample_kind","type":"EQUALS","system":"","value":"blood-plasma"}]}]}]}' \
-  "00000000-0000-0000-0000-000000000003" \
   2
 
 run_scenario \
   'sample_kind = whole-blood             (MIABIS WholeBlood: p2=1, BBMRI.de whole-blood: bbmri-p2=1)' \
   '{"operand":"OR","children":[{"operand":"AND","children":[{"operand":"OR","children":[{"key":"sample_kind","type":"EQUALS","system":"","value":"whole-blood"}]}]}]}' \
-  "00000000-0000-0000-0000-000000000004" \
   2
 
 echo ""
@@ -96,31 +82,26 @@ echo ""
 run_scenario \
   'diagnosis C61 (MIABIS: 0, BBMRI.de: bbmri-p2=1)' \
   '{"operand":"OR","children":[{"operand":"AND","children":[{"operand":"OR","children":[{"key":"diagnosis","type":"EQUALS","system":"","value":"C61"}]}]}]}' \
-  "00000000-0000-0000-0000-000000000005" \
   1
 
 run_scenario \
   'diagnosis C50 (MIABIS: 0, BBMRI.de: bbmri-p1=1)' \
   '{"operand":"OR","children":[{"operand":"AND","children":[{"operand":"OR","children":[{"key":"diagnosis","type":"EQUALS","system":"","value":"C50"}]}]}]}' \
-  "00000000-0000-0000-0000-000000000006" \
   1
 
 run_scenario \
   'diagnosis C34 (MIABIS: p1=1, BBMRI.de: 0)' \
   '{"operand":"OR","children":[{"operand":"AND","children":[{"operand":"OR","children":[{"key":"diagnosis","type":"EQUALS","system":"","value":"C34"}]}]}]}' \
-  "00000000-0000-0000-0000-000000000007" \
   1
 
 run_scenario \
   'diagnosis C18 (MIABIS: p2=1 via Condition, BBMRI.de: 0)' \
   '{"operand":"OR","children":[{"operand":"AND","children":[{"operand":"OR","children":[{"key":"diagnosis","type":"EQUALS","system":"","value":"C18"}]}]}]}' \
-  "00000000-0000-0000-0000-000000000008" \
   1
 
 run_scenario \
   'diagnosis C25 (MIABIS: p2=1 via sample-linked Observation, BBMRI.de: 0)' \
   '{"operand":"OR","children":[{"operand":"AND","children":[{"operand":"OR","children":[{"key":"diagnosis","type":"EQUALS","system":"","value":"C25"}]}]}]}' \
-  "00000000-0000-0000-0000-000000000009" \
   1
 
 echo ""

@@ -84,8 +84,9 @@ services:
     image: alpine:latest
     {{ service.head("test-counts", test=true) }}
     volumes:
+      - ../lib/tests:/tests:ro
       - ./counts-test.sh:/counts-test.sh:ro
-    entrypoint: ["sh", "-c", "apk add -q --no-cache bash curl jq && bash /counts-test.sh \"$$0\"", {{ net.url("spot") }}]
+    entrypoint: ["sh", "-c", "apk add -q --no-cache bash curl jq && /tests/retry.sh 600 bash /counts-test.sh \"$$0\"", {{ net.url("spot") }}]
 
 volumes:
 {{ beam.volumes() }}
