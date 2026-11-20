@@ -81,6 +81,18 @@ jobs:
           podman exec stack headlights "${{ matrix.project }}" ps -a || true
           podman logs stack
 
+  # One check that sums up the others, for a ruleset to require, so the ruleset
+  # doesn't need updating when jobs or matrix entries change
+  ci-passed:
+    # Without always(), this job is skipped when a dependency fails, and GitHub
+    # counts a skipped required check as passed.
+    if: always()
+    needs: [build, test]
+    runs-on: ubuntu-latest
+    steps:
+      - if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: exit 1
+
   push:
     needs: test
     if: github.event_name == 'push'
