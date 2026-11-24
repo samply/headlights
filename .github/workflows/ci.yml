@@ -107,3 +107,10 @@ jobs:
           podman load -i headlights.tar
           podman login ghcr.io -u "${{ github.actor }}" --password-stdin <<<"${{ secrets.GITHUB_TOKEN }}"
           podman push headlights "$IMAGE:${{ github.ref_name }}"
+
+      - name: Delete images no tag points to anymore
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: headlights
+          package-type: container
+          delete-only-untagged-versions: true
