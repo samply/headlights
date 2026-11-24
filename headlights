@@ -58,9 +58,9 @@ render() {
 }
 rendered=$(render)
 
-# In the container, podman's API starts with the container, so a command run in it
-# right away may come before its socket
-if [[ ${DOCKER_HOST:-} == unix://* ]]; then
+# In the container, the entrypoint starts podman's API, so a command run in it right
+# away may come before its socket. Without the entrypoint, there is none to wait for.
+if [[ ${DOCKER_HOST:-} == unix://* && $(tr '\0' ' ' < /proc/1/cmdline 2> /dev/null) == *container/entrypoint.sh* ]]; then
   for _ in {1..300}; do
     [[ -S ${DOCKER_HOST#unix://} ]] && break
     sleep 0.1
