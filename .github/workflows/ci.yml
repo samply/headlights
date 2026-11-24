@@ -46,10 +46,8 @@ jobs:
           - bbmri
           - eucaim
           - siorgp
-          # Their test data and backend are private (docker.verbis.dkfz.de and
-          # git.verbis.dkfz.de); enable once CI can pull them.
-          # - dhki
-          # - mnpoc
+          - dhki
+          - mnpoc
     steps:
       - uses: actions/download-artifact@v8
         with:

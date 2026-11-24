@@ -3,3 +3,10 @@ images:
   focus: develop
   lens2: latest
   testdata: latest
+services:
+  # Their test data is in a private image; with access to
+  # docker.verbis.dkfz.de/hki, set omit: false for both
+  testdata:
+    omit: true
+  load-blaze:
+    omit: true
