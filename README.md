@@ -10,7 +10,7 @@ Each project is one Docker Compose template, `<project>/compose.yaml.j2`. The
 | Project | Explorers | Sites |
 |---|---|---|
 | `dktk` | lens3, lens2 (DKTK explorer) | one, with test patients from `dktk/testdata` |
-| `dhki` | lens3, lens2 (DHKI explorer) | one, with research-db-data-loader's test patients (private image) |
+| `dhki` | lens3, lens2 (DHKI explorer) | one, empty by default |
 | `bbmri` | lens2 (Sample Locator) with prism | `bbmri` with bbmri-fhir-gen data, `miabis` with MIABIS-on-FHIR data |
 | `eucaim` | lens2 (EUCAIM explorer) | `chaimeleon` and `procanceri`, each answering with canned OMOP responses |
 | `siorgp` | the organoid dashboard (public and internal) | one, with Blaze and its SQL tables (fhir2sql) |

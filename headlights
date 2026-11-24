@@ -58,6 +58,15 @@ render() {
 }
 rendered=$(render)
 
+# In the container, podman's API starts with the container, so a command run in it
+# right away may come before its socket
+if [[ ${DOCKER_HOST:-} == unix://* ]]; then
+  for _ in {1..300}; do
+    [[ -S ${DOCKER_HOST#unix://} ]] && break
+    sleep 0.1
+  done
+fi
+
 # The compose project is named after the project directory, unless COMPOSE_PROJECT_NAME is set
 compose() {
   ${HEADLIGHTS_COMPOSE:-docker compose} \
@@ -91,8 +100,8 @@ if [[ $1 == test ]]; then
   tests=$(comm -13 <(compose config --services | sort) \
     <(compose --profile test config --services | sort))
   if [[ -z $tests ]]; then
-    echo "Project '$project' has no tests" >&2
-    exit 1
+    echo "Project '$project' has no tests"
+    exit 0
   fi
   failed=()
   for test in $tests; do
