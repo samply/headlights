@@ -7,7 +7,6 @@ beam_secret: insecure-beam-secret
 
 # Images of the services several projects share.
 images:
-  lens3: main
   spot: latest
   vault: latest
   # develop until a release has samply/beam#284: the released broker rejects

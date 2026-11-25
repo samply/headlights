@@ -8,7 +8,7 @@
 {% import "../lib/tests.j2" as tests %}
 services:
   lens3:
-    image: {{ image.ref("ghcr.io/samply/lens3", "dktk-explorer-" ~ images.lens3) }}
+    image: {{ image.ref("ghcr.io/samply/lens3", images.lens3) }}
     {{ service.head("lens3") }}
     environment:
       HOSTNAME: 0.0.0.0

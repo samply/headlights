@@ -1,4 +1,5 @@
 images:
+  lens3: dktk-explorer-main
   # develop until a focus release understands lens3's site protocol
   focus: develop
   lens2: latest

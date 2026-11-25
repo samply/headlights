@@ -1,3 +1,6 @@
+images:
+  lens3: mnpoc-explorer-main
+
 services:
   # Not part of the stack yet: run YAASB yourself with the redcap-lens logic
   # config on this port

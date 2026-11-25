@@ -5,7 +5,7 @@
 {% import "../lib/image.j2" as image %}
 services:
   lens3:
-    image: {{ image.ref("ghcr.io/samply/lens3", "mnpoc-explorer-" ~ images.lens3) }}
+    image: {{ image.ref("ghcr.io/samply/lens3", images.lens3) }}
     {{ service.head("lens3") }}
     environment:
       HOSTNAME: 0.0.0.0
