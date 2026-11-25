@@ -1,5 +1,9 @@
-{#- An image from the `images` config, whose value is a tag on `repo` or, when it
-    has a / or :, a whole image. -#}
+{#- An image from the `images` config. Its value is a tag on `repo`, or a whole
+    image when it has a / or :; either may end in @<digest>, which pins the
+    image. -#}
 {% macro ref(repo, value) -%}
-{{ (value if "/" in value or ":" in value else repo ~ ":" ~ value) | tojson }}
+{%- set name = (value | split("@") | first) -%}
+{%- if "/" in name or ":" in name -%}{{ value | tojson }}
+{%- elif not name -%}{{ (repo ~ value) | tojson }}
+{%- else -%}{{ (repo ~ ":" ~ value) | tojson }}{%- endif %}
 {%- endmacro %}
