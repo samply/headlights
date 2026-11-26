@@ -1,0 +1,14 @@
+[
+  {
+    "SubjectId": "headlights-researcher",
+    "Username": "Researcher",
+    "Password": "researcher",
+    "Claims": [
+      { "Type": "name", "Value": "Headlights Researcher", "ValueType": "string" },
+      { "Type": "given_name", "Value": "Headlights", "ValueType": "string" },
+      { "Type": "family_name", "Value": "Researcher", "ValueType": "string" },
+      { "Type": "preferred_username", "Value": "Headlights Researcher", "ValueType": "string" },
+      { "Type": "email", "Value": "researcher@headlights.invalid", "ValueType": "string" }
+    ]
+  }
+]

@@ -20,6 +20,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - name: Test the fixture contract
+        run: node --test bbmri-negotiator/negotiator/fixtures.test.mjs
+
       - name: Build the image
         run: |
           podman build -t headlights .
@@ -44,6 +47,7 @@ jobs:
         project:
           - dktk
           - bbmri
+          - bbmri-negotiator
           - eucaim
           - siorgp
           - dhki

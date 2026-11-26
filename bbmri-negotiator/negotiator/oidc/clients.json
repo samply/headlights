@@ -1,0 +1,15 @@
+[
+  {
+    "ClientId": "auth-code-client",
+    "AllowedGrantTypes": ["authorization_code"],
+    "AllowAccessTokensViaBrowser": true,
+    "RedirectUris": ["http://localhost:8090/logged-in", "http://localhost:8090/silent-renew-oidc.html"],
+    "AllowedCorsOrigins": ["http://localhost:8090"],
+    "AllowedScopes": ["openid", "profile", "email", "permissions", "some-app-scope-1"],
+    "PostLogoutRedirectUris": ["http://localhost:8090"],
+    "RequireClientSecret": false,
+    "RequirePkce": true,
+    "RequireConsent": false,
+    "AccessTokenLifetime": 3600
+  }
+]
