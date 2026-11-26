@@ -136,8 +136,9 @@ Locator floats on `:main` as the system under test.
 ./headlights bbmri-negotiator test
 ```
 
-Start the stack with `up` first: `test` only starts the test service's
-dependencies, and the Locator would come up without its search backend. Open
+Like the other tests, `test` starts no part of the stack: it waits, for up to
+15 minutes, until the Locator, the Negotiator, and a Spot query to both sites
+answer, so it can run right after `up`, but not without it. Open
 http://localhost:3000/search/, select either or both Headlights biobanks,
 click **Negotiate with biobanks**, and log in as `Researcher` with password
 `researcher`. The Negotiator at http://localhost:8090 turns the handoff into a

@@ -253,20 +253,28 @@ services:
     image: mcr.microsoft.com/playwright:v1.59.1-noble
     {{ service.head("test-handoff", test=true) }}
     network_mode: host
-    depends_on:
-      lens2:
-        condition: service_healthy
-      negotiator-gateway:
-        condition: service_healthy
+    # No depends_on, like the shared tests: `compose run` would start the
+    # dependencies itself, racing an `up` still starting the same containers.
+    # It waits for the running stack with retry.sh instead.
     working_dir: /test
     environment:
       - CI=${CI}
     volumes:
+      - ../lib/tests:/tests:ro
       - ./negotiator:/test/negotiator:ro
       - ./playwright.negotiator.config.ts:/test/playwright.negotiator.config.ts:ro
       - ./test-results:/test/test-results
       - ./playwright-report:/test/playwright-report
-    command: bash -c 'npm i @playwright/test@1.59.1 && npx playwright test --config playwright.negotiator.config.ts'
+    command:
+      - bash
+      - -c
+      - >-
+        /tests/retry.sh 900 node negotiator/stack-ready.mjs
+        http://localhost:{{ services.lens2.port }}
+        http://localhost:{{ services["negotiator-gateway"].port }}
+        http://localhost:{{ services.spot.port }}
+        && npm i @playwright/test@1.59.1
+        && npx playwright test --config playwright.negotiator.config.ts
 
 volumes:
 {{ beam.volumes() }}
