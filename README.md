@@ -207,6 +207,11 @@ The stack's ports are published inside the container only; publish the ones
 you need with `-p`. The container applies an optional `/config.yaml`, and passes
 any further arguments to `docker compose` instead of `up`.
 
+podman schedules health checks with systemd, which the container lacks, so its
+entrypoint runs every container's health check itself every 5 seconds,
+regardless of the check's own `interval`. Without that, no service would turn
+healthy and `depends_on` with `condition: service_healthy` would wait forever.
+
 - Services on the real host: give them `omit: true`. The stack reaches
   `host.docker.internal:<port>` on the real host for every port it doesn't
   publish itself, if the service there listens on every interface.

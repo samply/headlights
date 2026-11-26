@@ -81,6 +81,8 @@ jobs:
         if: failure()
         run: |
           podman exec stack headlights "${{ matrix.project }}" ps -a || true
+          # Compose's ps leaves out podman's health status, which depends_on waits for
+          podman exec stack sh -c 'podman inspect --format "{{.Name}} {{.State.Status}} {{if .State.Health}}{{.State.Health.Status}}{{end}}" $(podman ps -aq)' || true
           podman logs stack
 
       # Playwright's traces, videos, screenshots and report, for projects

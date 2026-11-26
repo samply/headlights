@@ -11,8 +11,17 @@ if (!spot) {
   process.exit(2);
 }
 
+// fetch's own message is just "fetch failed"; name the URL and the cause
+async function request(url, options = {}) {
+  try {
+    return await fetch(url, { signal: AbortSignal.timeout(10_000), ...options });
+  } catch (error) {
+    throw new Error(`${url}: ${error.cause?.code ?? error.cause?.message ?? error.message}`);
+  }
+}
+
 async function get(url) {
-  const response = await fetch(url, { signal: AbortSignal.timeout(10_000) });
+  const response = await request(url);
   if (!response.ok) throw new Error(`${url}: HTTP ${response.status}`);
 }
 
@@ -23,15 +32,16 @@ async function spotQuery() {
   const ast = { ast: { operand: 'OR', children: [] }, id };
   const payload = Buffer.from(JSON.stringify(ast)).toString('base64');
   const query = Buffer.from(JSON.stringify({ lang: 'ast', payload })).toString('base64');
-  const posted = await fetch(`${spot}/beam`, {
+  const posted = await request(`${spot}/beam`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ query, id }),
-    signal: AbortSignal.timeout(10_000),
   });
   if (!posted.ok) throw new Error(`${spot}/beam: HTTP ${posted.status}`);
-  const stream = await fetch(`${spot}/beam/${id}`, { signal: AbortSignal.timeout(60_000) });
-  const text = await stream.text();
+  const stream = await request(`${spot}/beam/${id}`, { signal: AbortSignal.timeout(60_000) });
+  const text = await stream.text().catch((error) => {
+    throw new Error(`${spot}/beam/${id}: ${error.name === 'TimeoutError' ? 'no answer from every site within 60s' : error.message}`);
+  });
   const answers = [...text.matchAll(/"from":"([^"]*)",.*"status":"([a-z]+)"/g)]
     .map(([, from, status]) => ({ from, status }))
     .filter(({ status }) => status !== 'claimed');
