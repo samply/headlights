@@ -37,7 +37,9 @@ RUN set -eu; \
     install "$name" /usr/local/bin/yq; \
     rm "$name"
 
-COPY . /headlights
+# Owned by podman: rootless podman creates missing bind-mount sources as this
+# user, e.g. the Playwright output directories next to a project's template
+COPY --chown=podman:podman . /headlights
 RUN ln -s /headlights/headlights /usr/local/bin/headlights
 # Rootless podman reads additionalimagestores only from the user's storage.conf
 COPY --chown=podman:podman container/storage.conf /home/podman/.config/containers/storage.conf

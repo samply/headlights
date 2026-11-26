@@ -83,6 +83,24 @@ jobs:
           podman exec stack headlights "${{ matrix.project }}" ps -a || true
           podman logs stack
 
+      # Playwright's traces, videos, screenshots and report, for projects
+      # with a browser test; the others have none to copy
+      - name: Copy the test artifacts out of the stack
+        if: failure()
+        run: |
+          mkdir -p artifacts
+          for dir in test-results playwright-report; do
+            podman cp "stack:/headlights/${{ matrix.project }}/$dir" artifacts/ 2>/dev/null || true
+          done
+
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: test-artifacts-${{ matrix.project }}
+          path: artifacts/
+          if-no-files-found: ignore
+          retention-days: 7
+
   # One check that sums up the others, for a ruleset to require, so the ruleset
   # doesn't need updating when jobs or matrix entries change
   ci-passed:
