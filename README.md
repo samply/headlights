@@ -11,7 +11,7 @@ Each project is one Docker Compose template, `<project>/compose.yaml.j2`. The
 |---|---|---|
 | `dktk` | lens3, lens2 (DKTK explorer) | one, with test patients from `dktk/testdata` |
 | `dhki` | lens3, lens2 (DHKI explorer) | one, empty by default |
-| `bbmri` | lens2 (Sample Locator) with prism | `bbmri` with bbmri-fhir-gen data, `miabis` with MIABIS-on-FHIR data |
+| `bbmri` | lens2 (Sample Locator) with prism; with `bbmri/negotiator.yaml`, also the Negotiator | `bbmri` with bbmri-fhir-gen data, `miabis` with MIABIS-on-FHIR data; with `bbmri/negotiator.yaml`, also the two Headlights biobanks with small fixtures |
 | `eucaim` | lens2 (EUCAIM explorer) | `chaimeleon` and `procanceri`, each answering with canned OMOP responses |
 | `siorgp` | the organoid dashboard (public and internal) | one, with Blaze and its SQL tables (fhir2sql) |
 | `mnpoc` | lens3 | none: it queries YAASB, which is not part of the stack yet |
@@ -117,6 +117,91 @@ is the result. A test retries its check with `lib/tests/retry.sh` until the
 part of the stack it exercises works, so it can start right after `up`. Tests
 that several projects share are macros in `lib/tests.j2`.
 
+## Negotiator
+
+The config file `bbmri/negotiator.yaml` adds the Negotiator to the bbmri stack
+and tests the complete Locator-to-Negotiator handoff: the search, the
+selection, the handoff request, the redirect, the OIDC login, and the resulting
+draft in the Negotiator's GUI. Search runs against two small Headlights
+biobanks, `biobank-a` and `biobank-b`, from `bbmri/negotiator/fixtures.json`,
+next to the stack's usual three sites, and only the Directory metadata is a
+fixture. Negotiator and its frontend are pinned to 3.23.0 because the
+assertions couple to its handoff API and rendered markup.
+
+`negotiator.yaml` also changes three things about the rest of the stack, each
+explained in the file:
+
+- The Locator runs `:main` instead of `:latest`, until a release reads
+  `PUBLIC_LENS_OPTIONS` and `DIRECTORY_GRAPHQL_ENDPOINT`.
+- The Locator listens on port 3000 instead of 28001.
+- Focus is pinned to 0.25.1 for the two Headlights biobanks only
+  (`images.focus-<site>`), because 0.26 renamed the Custodian stratifier before
+  Lens learned the new name. The other sites stay on focus `main`.
+
+Pass the file to every command, `down` included: without it, compose knows
+nothing of the Negotiator's services and leaves their containers and volumes
+behind.
+
+```bash
+./headlights -c bbmri/negotiator.yaml bbmri up -d --pull always
+./headlights -c bbmri/negotiator.yaml bbmri test
+```
+
+`test` runs bbmri's own tests and then the browser test. Like the other tests,
+it starts no part of the stack: the browser test waits, for up to 15 minutes,
+until the Locator, the Negotiator, and a Spot query to every site answer, so it
+can run right after `up`, but not without it. Open
+http://localhost:3000/search/, select either or both Headlights biobanks,
+click **Negotiate with biobanks**, and log in as `Researcher` with password
+`researcher`. The Negotiator at http://localhost:8090 turns the handoff into a
+draft. All accounts and data are local test fixtures. Use these localhost URLs
+exactly: the OIDC redirect and the discovery registration depend on them, and
+Negotiator strips the port when matching the Locator's `http://localhost:3000`
+against the seeded `http://localhost`. The other three sites appear in the
+Locator too, but only the Headlights biobanks are known to the Negotiator.
+
+`bbmri/negotiator/fixtures.json` is the single source of truth for the FHIR
+data of both Headlights biobanks, the Locator's site mappings and negotiation
+options, the Directory metadata, the Negotiator's seed migration, and the four
+test scenarios. Its site IDs must match `headlights_sites` in
+`bbmri/compose.yaml.j2`. The fixture contract is checked without Docker:
+
+```bash
+node --test bbmri/negotiator/fixtures.test.mjs
+```
+
+The browser test runs the four scenarios in Chromium, Firefox, and WebKit, one
+worker at a time: `setup.mjs` mints one OIDC user per browser, scenario, and
+retry, so Negotiator's automatic draft merging cannot leak between tests, and
+successful tests delete their drafts. Failure artifacts — traces, videos,
+screenshots, the handoff payload, and the report — land in
+`bbmri/test-results/` and `bbmri/playwright-report/`.
+
+Reset with `down -v` before repeating a failed run or after changing fixtures:
+
+```bash
+./headlights -c bbmri/negotiator.yaml bbmri down -v
+```
+
+That deletes the project's volumes, including the Negotiator's drafts and
+database. With unchanged fixtures, plain `down` and `up` cycles are fine:
+Flyway re-validates the unchanged seed and the loaders skip unchanged test
+data. Editing `fixtures.json` or `fixtures.mjs` changes the seed's checksum,
+and any database that applied the previous seed then refuses to start with
+`Migration checksum mismatch for migration version 1000` — that means the
+reset was skipped, not that the fixtures are broken.
+
+The Locator runs from a child image (`negotiator/locator.Dockerfile`) of the
+image `images.lens2` names, which only replaces its `CMD` with an entrypoint
+loading the fixture-generated options into `PUBLIC_LENS_OPTIONS` before the
+server starts: Compose cannot interpolate file contents into an environment
+variable, and the options live in a volume, not on the host.
+`DIRECTORY_GRAPHQL_ENDPOINT` is a plain environment variable pointing at the
+Directory fixture.
+
+In the container (see below), add the file to `HEADLIGHTS_CONFIG`, which the
+image already contains: `-e HEADLIGHTS_CONFIG=/config.yaml:/headlights/bbmri/negotiator.yaml`.
+
 ## Container
 
 The image built from `Containerfile` runs one project on its own podman, so
@@ -139,6 +224,11 @@ podman exec dktk headlights dktk test
 The stack's ports are published inside the container only; publish the ones
 you need with `-p`. The container applies an optional `/config.yaml`, and passes
 any further arguments to `docker compose` instead of `up`.
+
+podman schedules health checks with systemd, which the container lacks, so its
+entrypoint runs every container's health check itself every 5 seconds,
+regardless of the check's own `interval`. Without that, no service would turn
+healthy and `depends_on` with `condition: service_healthy` would wait forever.
 
 - Services on the real host: give them `omit: true`. The stack reaches
   `host.docker.internal:<port>` on the real host for every port it doesn't

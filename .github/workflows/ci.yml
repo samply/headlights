@@ -20,6 +20,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - name: Test the fixture contract
+        run: node --test bbmri/negotiator/fixtures.test.mjs
+
       - name: Build the image
         run: |
           podman build -t headlights .
@@ -40,14 +43,21 @@ jobs:
       packages: read
     strategy:
       fail-fast: false
+      # One job per entry. `config` is a config file in the image, applied
+      # after the project's defaults; `name` tells jobs of one project apart.
+      # Only `include`, since an entry matching a `project:` list item would
+      # extend that job instead of adding one.
       matrix:
-        project:
-          - dktk
-          - bbmri
-          - eucaim
-          - siorgp
-          - dhki
-          - mnpoc
+        include:
+          - project: dktk
+          - project: bbmri
+          - project: bbmri
+            name: bbmri-negotiator
+            config: /headlights/bbmri/negotiator.yaml
+          - project: eucaim
+          - project: siorgp
+          - project: dhki
+          - project: mnpoc
     steps:
       - uses: actions/download-artifact@v8
         with:
@@ -68,6 +78,7 @@ jobs:
             --device /dev/fuse --device /dev/net/tun \
             --security-opt label=disable --security-opt unmask=ALL \
             -v ./auth.json:/home/podman/.docker/config.json:ro \
+            -e "HEADLIGHTS_CONFIG=/config.yaml:${{ matrix.config }}" \
             headlights "${{ matrix.project }}"
 
       - name: Test
@@ -77,7 +88,27 @@ jobs:
         if: failure()
         run: |
           podman exec stack headlights "${{ matrix.project }}" ps -a || true
+          # Compose's ps leaves out podman's health status, which depends_on waits for
+          podman exec stack sh -c 'podman inspect --format "{{.Name}} {{.State.Status}} {{if .State.Health}}{{.State.Health.Status}}{{end}}" $(podman ps -aq)' || true
           podman logs stack
+
+      # Playwright's traces, videos, screenshots and report, for projects
+      # with a browser test; the others have none to copy
+      - name: Copy the test artifacts out of the stack
+        if: failure()
+        run: |
+          mkdir -p artifacts
+          for dir in test-results playwright-report; do
+            podman cp "stack:/headlights/${{ matrix.project }}/$dir" artifacts/ 2>/dev/null || true
+          done
+
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: test-artifacts-${{ matrix.name || matrix.project }}
+          path: artifacts/
+          if-no-files-found: ignore
+          retention-days: 7
 
   # One check that sums up the others, for a ruleset to require, so the ruleset
   # doesn't need updating when jobs or matrix entries change

@@ -1,3 +1,6 @@
+# Set by negotiator.yaml, which adds the Negotiator and its two sites
+negotiator: false
+
 images:
   lens2: latest
   prism: main
@@ -11,9 +14,18 @@ services:
     port: 28083
   proxy-generated:
     port: 28084
+  # The Headlights biobanks, with negotiator.yaml
+  proxy-biobank-a:
+    port: 28085
+  proxy-biobank-b:
+    port: 28086
   blaze-bbmri:
     port: 28090
   blaze-miabis:
     port: 28091
   blaze-generated:
     port: 28092
+  blaze-biobank-a:
+    port: 28093
+  blaze-biobank-b:
+    port: 28094

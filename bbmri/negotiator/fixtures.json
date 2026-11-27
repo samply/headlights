@@ -1,0 +1,75 @@
+{
+  "sites": [
+    {
+      "id": "biobank-a",
+      "biobankId": "bbmri-eric:ID:DE_HEADLIGHTS_A",
+      "biobankName": "Headlights Biobank A",
+      "collections": [
+        { "id": "bbmri-eric:ID:DE_HEADLIGHTS_A:collection:plasma", "name": "Headlights Plasma" },
+        { "id": "bbmri-eric:ID:DE_HEADLIGHTS_A:collection:tissue", "name": "Headlights Tissue" },
+        { "id": "bbmri-eric:ID:DE_HEADLIGHTS_A:collection:reserve", "name": "Headlights Reserve" }
+      ],
+      "fallbackCollection": "bbmri-eric:ID:DE_HEADLIGHTS_A:collection:reserve",
+      "specimenCollections": [
+        { "collection": 0, "type": "blood-plasma" },
+        { "collection": 0, "type": "blood-plasma" },
+        { "collection": 1, "type": "tissue-frozen" }
+      ]
+    },
+    {
+      "id": "biobank-b",
+      "biobankId": "bbmri-eric:ID:DE_HEADLIGHTS_B",
+      "biobankName": "Headlights Biobank B",
+      "collections": [
+        { "id": "bbmri-eric:ID:DE_HEADLIGHTS_B:collection:fallback", "name": "Headlights Fallback" }
+      ],
+      "fallbackCollection": "bbmri-eric:ID:DE_HEADLIGHTS_B:collection:fallback",
+      "specimenCollections": [
+        { "collection": null, "type": "blood-plasma" }
+      ]
+    }
+  ],
+  "scenarios": [
+    {
+      "name": "all selected biobanks and collections",
+      "selected": ["biobank-a", "biobank-b"],
+      "deselected": [],
+      "filterSampleType": null,
+      "expectedCollectionIds": [
+        "bbmri-eric:ID:DE_HEADLIGHTS_A:collection:plasma",
+        "bbmri-eric:ID:DE_HEADLIGHTS_A:collection:tissue",
+        "bbmri-eric:ID:DE_HEADLIGHTS_B:collection:fallback"
+      ]
+    },
+    {
+      "name": "one biobank with multiple collections",
+      "selected": ["biobank-a"],
+      "deselected": [],
+      "filterSampleType": null,
+      "expectedCollectionIds": [
+        "bbmri-eric:ID:DE_HEADLIGHTS_A:collection:plasma",
+        "bbmri-eric:ID:DE_HEADLIGHTS_A:collection:tissue"
+      ]
+    },
+    {
+      "name": "deselected biobank is excluded and fallback collection is retained",
+      "selected": ["biobank-b"],
+      "deselected": ["biobank-a"],
+      "filterSampleType": null,
+      "expectedCollectionIds": [
+        "bbmri-eric:ID:DE_HEADLIGHTS_B:collection:fallback"
+      ]
+    },
+    {
+      "name": "collection IDs follow the search query",
+      "selected": ["biobank-a", "biobank-b"],
+      "deselected": [],
+      "filterSampleType": "tissue-frozen",
+      "filterLabel": "Tissue snap frozen",
+      "expectedCollectionIds": [
+        "bbmri-eric:ID:DE_HEADLIGHTS_A:collection:tissue",
+        "bbmri-eric:ID:DE_HEADLIGHTS_B:collection:fallback"
+      ]
+    }
+  ]
+}

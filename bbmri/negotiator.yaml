@@ -1,0 +1,35 @@
+# Adds the Negotiator, the two Headlights biobanks from negotiator/fixtures.json
+# and the browser handoff test to the bbmri stack:
+#
+#   ./headlights -c bbmri/negotiator.yaml bbmri up -d --pull always
+#   ./headlights -c bbmri/negotiator.yaml bbmri test
+#   ./headlights -c bbmri/negotiator.yaml bbmri down -v
+#
+# Pass it to every command, `down` included: without it, compose knows nothing
+# of the Negotiator's containers and volumes and leaves them behind.
+
+negotiator: true
+
+images:
+  # The Locator reads PUBLIC_LENS_OPTIONS and DIRECTORY_GRAPHQL_ENDPOINT at
+  # runtime since this change reached main, not yet in a release. Drop this
+  # line once a release has them, so the Negotiator tests run :latest too.
+  lens2: main
+  # Focus 0.26 renamed the Custodian stratifier to "Custodian-specimen" before
+  # Lens learned to read it: with 0.26+ both Headlights biobanks degrade to their
+  # fallback collection and the handoff assertions fail. Pinned for these two
+  # sites only, so the other sites keep testing focus main. Drop the pins once a
+  # Lens release reading the new name has shipped and the Locator has picked it up.
+  focus-biobank-a: samply/focus:0.25.1
+  focus-biobank-b: samply/focus:0.25.1
+
+services:
+  # Baked into the handoff URL that the spec asserts and Playwright's baseURL;
+  # the Negotiator's CORS setting follows it. 8090 (the Negotiator) and 4011
+  # (its OIDC provider) are baked into redirect URIs and the tokens' issuer.
+  lens2:
+    port: 3000
+  negotiator-gateway:
+    port: 8090
+  negotiator-oidc:
+    port: 4011
