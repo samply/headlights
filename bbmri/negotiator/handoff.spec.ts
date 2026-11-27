@@ -54,7 +54,7 @@ for (const [scenarioIndex, scenario] of scenarios.entries()) {
     // the top of the file. Under the plain playwright.config.ts it skips the
     // whole suite instead of failing, since that config has no metadata.
     test.skip(!testInfo.config.metadata.negotiator,
-      'Requires the bbmri-negotiator stack and playwright.negotiator.config.ts');
+      'Requires the bbmri stack with negotiator.yaml and playwright.negotiator.config.ts');
 
     // setup.mjs mints one OIDC user per project × scenario × retry (retries 0-2). An
     // unexpected project name or retry index would otherwise surface as a confusing OIDC
@@ -93,6 +93,11 @@ for (const [scenarioIndex, scenario] of scenarios.entries()) {
         await checkbox.setChecked(scenario.selected.includes(site.id));
       }
     }
+    // The bbmri stack's other sites (bbmri, miabis, generated) are in the table too. Lens
+    // starts with every row unchecked, so they stay out of the handoff; the Negotiator knows
+    // none of their collections. Fail here, not on the payload, should that default change.
+    await expect(table.getByRole('row').filter({ has: page.getByRole('checkbox', { checked: true }) }),
+      'only the selected Headlights biobanks may be checked').toHaveCount(scenario.selected.length);
 
     // Negotiator only lands on /edit/requests/<id> if it turns the request into a draft. Two API
     // calls decide that, and both fail silently in the UI, so a stall is otherwise impossible to

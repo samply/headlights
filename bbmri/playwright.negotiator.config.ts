@@ -1,7 +1,7 @@
 import { defineConfig } from '@playwright/test';
 
 // Runs the Negotiator handoff suite against the stack started with
-// `./headlights bbmri-negotiator up`, inside the test-handoff service.
+// `./headlights -c bbmri/negotiator.yaml bbmri up`, inside the test-handoff service.
 export default defineConfig({
   testDir: './negotiator',
   testMatch: 'handoff.spec.ts',

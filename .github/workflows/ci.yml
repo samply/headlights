@@ -21,7 +21,7 @@ jobs:
       - uses: actions/checkout@v7
 
       - name: Test the fixture contract
-        run: node --test bbmri-negotiator/negotiator/fixtures.test.mjs
+        run: node --test bbmri/negotiator/fixtures.test.mjs
 
       - name: Build the image
         run: |
@@ -43,15 +43,21 @@ jobs:
       packages: read
     strategy:
       fail-fast: false
+      # One job per entry. `config` is a config file in the image, applied
+      # after the project's defaults; `name` tells jobs of one project apart.
+      # Only `include`, since an entry matching a `project:` list item would
+      # extend that job instead of adding one.
       matrix:
-        project:
-          - dktk
-          - bbmri
-          - bbmri-negotiator
-          - eucaim
-          - siorgp
-          - dhki
-          - mnpoc
+        include:
+          - project: dktk
+          - project: bbmri
+          - project: bbmri
+            name: bbmri-negotiator
+            config: /headlights/bbmri/negotiator.yaml
+          - project: eucaim
+          - project: siorgp
+          - project: dhki
+          - project: mnpoc
     steps:
       - uses: actions/download-artifact@v8
         with:
@@ -72,6 +78,7 @@ jobs:
             --device /dev/fuse --device /dev/net/tun \
             --security-opt label=disable --security-opt unmask=ALL \
             -v ./auth.json:/home/podman/.docker/config.json:ro \
+            -e "HEADLIGHTS_CONFIG=/config.yaml:${{ matrix.config }}" \
             headlights "${{ matrix.project }}"
 
       - name: Test
@@ -98,7 +105,7 @@ jobs:
       - uses: actions/upload-artifact@v7
         if: failure()
         with:
-          name: test-artifacts-${{ matrix.project }}
+          name: test-artifacts-${{ matrix.name || matrix.project }}
           path: artifacts/
           if-no-files-found: ignore
           retention-days: 7
